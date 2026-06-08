@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  min-height: 100vh;
+  color: #e5e7eb;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(99,102,241,0.35), transparent 40%),
+    radial-gradient(circle at 80% 0%, rgba(16,185,129,0.35), transparent 40%),
+    linear-gradient(135deg, #020617, #020617);
+  font-family: Inter, system-ui, sans-serif;
+}
+
+/* Glass card */
+.glass {
+  @apply bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl;
+}
+
+/* Smooth entrance */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-up {
+  animation: fadeUp 0.5s ease forwards;
+}

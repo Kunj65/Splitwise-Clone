@@ -1,0 +1,23 @@
+{
+  "name": "splitwise-clone-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "nodemon server.js",
+    "start": "nodemon server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.3",
+    "express": "^4.18.4",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^7.5.3",
+    "node-cron": "^4.2.1",
+    "nodemailer": "^8.0.10"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
