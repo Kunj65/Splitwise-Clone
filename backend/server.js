@@ -38,7 +38,7 @@ const start = async () => {
     console.log("Connected to MongoDB");
 
     app.listen(PORT, () => {
-      console.log(`Backend listening on http://localhost:${PORT}`);
+      console.log(`Backend listening on PORT:${PORT}`);
     });
   } catch (error) {
     console.error("MongoDB connection error:", error);

@@ -13,4 +13,5 @@ export const currencySymbols = {
   CNY: "¥",
   CHF: "CHF ",
   NZD: "NZ$ ",
+  THAI: "฿"
 };

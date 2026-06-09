@@ -40,7 +40,7 @@ const baseTemplate = (content) => `
                 <tr>
                   <td align="center">
                     <div style="display:inline-block;background:rgba(52,211,153,0.15);border:1px solid rgba(52,211,153,0.3);border-radius:12px;padding:10px 20px;">
-                      <span style="font-size:22px;font-weight:700;color:#34d399;letter-spacing:1px;">💸 Splitwise</span>
+                      <span style="font-size:22px;font-weight:700;color:#34d399;letter-spacing:1px;">Splitwise</span>
                     </div>
                     <p style="color:#94a3b8;margin:12px 0 0;font-size:13px;letter-spacing:0.5px;">Smart Expense Splitting</p>
                   </td>
