@@ -8,6 +8,8 @@ import AuthProvider from "./auth/AuthProvider";
 import { ActivityProvider } from "./context/ActivityProvider";
 import { SocketProvider } from "./context/SocketProvider";
 import { GroupProvider } from "./context/GroupProvider";
+import { pingBackend } from "./api";
+pingBackend(); // wake up Render immediately when app loads
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
