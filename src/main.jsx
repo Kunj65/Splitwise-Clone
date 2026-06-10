@@ -6,6 +6,7 @@ import "./index.css";
 
 import AuthProvider from "./auth/AuthProvider";
 import { ActivityProvider } from "./context/ActivityProvider";
+import { SocketProvider } from "./context/SocketProvider";
 import { GroupProvider } from "./context/GroupProvider";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
@@ -13,9 +14,11 @@ ReactDOM.createRoot(document.getElementById("root")).render(
     <BrowserRouter>
       <AuthProvider>
         <ActivityProvider>
-          <GroupProvider>
-            <App />
-          </GroupProvider>
+          <SocketProvider>
+            <GroupProvider>
+              <App />
+            </GroupProvider>
+          </SocketProvider>
         </ActivityProvider>
       </AuthProvider>
     </BrowserRouter>

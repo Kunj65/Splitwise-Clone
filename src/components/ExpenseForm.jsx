@@ -3,37 +3,26 @@ import { useState } from "react";
 const ExpenseForm = ({ members, onAddExpense }) => {
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
-
-  const [currency, setCurrency] = useState("INR");
-
   const [splitType, setSplitType] = useState("equal");
   const [splits, setSplits] = useState({});
   const [shares, setShares] = useState({});
   const [payments, setPayments] = useState({});
 
-  const updateSplit = (m, v) =>
-    setSplits((p) => ({ ...p, [m]: Number(v) }));
+  // Helper — get display name from member (now an object)
+  const getName = (m) => (typeof m === "object" ? m.name : m);
+  const getId = (m) => (typeof m === "object" ? m._id : m);
 
-  const updateShares = (m, v) =>
-    setShares((p) => ({ ...p, [m]: Number(v) }));
-
-  const updatePayment = (m, v) =>
-    setPayments((p) => ({ ...p, [m]: Number(v) }));
+  const updateSplit = (id, v) => setSplits((p) => ({ ...p, [id]: Number(v) }));
+  const updateShares = (id, v) => setShares((p) => ({ ...p, [id]: Number(v) }));
+  const updatePayment = (id, v) => setPayments((p) => ({ ...p, [id]: Number(v) }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!description || !amount) return;
 
     const total = Number(amount);
 
-    /* ---------- VALIDATE PAYMENTS ---------- */
-
-    const paidTotal = Object.values(payments).reduce(
-      (a, b) => a + b,
-      0
-    );
-
+    const paidTotal = Object.values(payments).reduce((a, b) => a + b, 0);
     if (paidTotal !== total) {
       alert("Total paid must equal expense amount");
       return;
@@ -41,88 +30,53 @@ const ExpenseForm = ({ members, onAddExpense }) => {
 
     let finalSplits = {};
 
-    /* ---------- EQUAL ---------- */
-
     if (splitType === "equal") {
       const share = total / members.length;
-
-      members.forEach((m) => {
-        finalSplits[m] = share;
-      });
+      members.forEach((m) => (finalSplits[getId(m)] = share));
     }
 
-    /* ---------- EXACT ---------- */
-
     if (splitType === "exact") {
-      const sum = Object.values(splits).reduce(
-        (a, b) => a + b,
-        0
-      );
-
+      const sum = Object.values(splits).reduce((a, b) => a + b, 0);
       if (sum !== total) {
         alert("Exact amounts must match total");
         return;
       }
-
       finalSplits = splits;
     }
 
-    /* ---------- PERCENTAGE ---------- */
-
     if (splitType === "percentage") {
-      const sum = Object.values(splits).reduce(
-        (a, b) => a + b,
-        0
-      );
-
+      const sum = Object.values(splits).reduce((a, b) => a + b, 0);
       if (sum !== 100) {
         alert("Percentages must total 100%");
         return;
       }
-
-      members.forEach((m) => {
-        finalSplits[m] =
-          ((splits[m] || 0) / 100) * total;
-      });
+      members.forEach((m) => (finalSplits[getId(m)] = (splits[getId(m)] / 100) * total));
     }
 
-    /* ---------- SHARES ---------- */
-
     if (splitType === "shares") {
-      const totalShares = Object.values(shares).reduce(
-        (a, b) => a + b,
-        0
-      );
-
+      const totalShares = Object.values(shares).reduce((a, b) => a + b, 0);
       if (!totalShares) {
         alert("Enter shares");
         return;
       }
-
       const perShare = total / totalShares;
-
-      members.forEach((m) => {
-        finalSplits[m] =
-          (shares[m] || 0) * perShare;
-      });
+      members.forEach((m) => (finalSplits[getId(m)] = (shares[getId(m)] || 0) * perShare));
     }
+
+    // Who paid — find the member with payment > 0
+    const paidById = Object.keys(payments).find((key) => payments[key] > 0) || getId(members[0]);
+    const splitBetweenIds = Object.keys(finalSplits);
 
     try {
       await onAddExpense({
         description,
         amount: total,
-        currency,
-        splitType,
-        paidBy:
-          Object.keys(payments).find(
-            (key) => payments[key] > 0
-          ) || members[0],
-        splitBetween: Object.keys(finalSplits),
+        paidById,
+        splitBetweenIds,
       });
 
       setDescription("");
       setAmount("");
-      setCurrency("INR");
       setSplits({});
       setShares({});
       setPayments({});
@@ -133,21 +87,14 @@ const ExpenseForm = ({ members, onAddExpense }) => {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="glass rounded-3xl p-6 space-y-4 fade-up"
-    >
-      <h3 className="text-xl font-semibold">
-        Add Expense
-      </h3>
+    <form onSubmit={handleSubmit} className="glass rounded-3xl p-6 space-y-4 fade-up">
+      <h3 className="text-xl font-semibold">Add Expense</h3>
 
       <input
         className="w-full bg-black/40 rounded-xl p-3"
         placeholder="Description"
         value={description}
-        onChange={(e) =>
-          setDescription(e.target.value)
-        }
+        onChange={(e) => setDescription(e.target.value)}
       />
 
       <input
@@ -155,116 +102,58 @@ const ExpenseForm = ({ members, onAddExpense }) => {
         className="w-full bg-black/40 rounded-xl p-3"
         placeholder="Amount"
         value={amount}
-        onChange={(e) =>
-          setAmount(e.target.value)
-        }
+        onChange={(e) => setAmount(e.target.value)}
       />
 
-      {/* SPLIT TYPE + CURRENCY */}
-
-      <div className="grid md:grid-cols-2 gap-4">
-        <select
-          className="w-full bg-black/40 rounded-xl p-3"
-          value={splitType}
-          onChange={(e) =>
-            setSplitType(e.target.value)
-          }
-        >
-          <option value="equal">Equal</option>
-          <option value="exact">Exact</option>
-          <option value="percentage">Percentage</option>
-          <option value="shares">Shares</option>
-        </select>
-
-        <select
-          className="w-full bg-black/40 rounded-xl p-3"
-          value={currency}
-          onChange={(e) =>
-            setCurrency(e.target.value)
-          }
-        >
-          <option value="INR">🇮🇳 INR (₹)</option>
-          <option value="USD">🇺🇸 USD ($)</option>
-          <option value="EUR">🇪🇺 EUR (€)</option>
-          <option value="GBP">🇬🇧 GBP (£)</option>
-          <option value="JPY">🇯🇵 JPY (¥)</option>
-          <option value="AUD">🇦🇺 AUD (A$)</option>
-          <option value="CAD">🇨🇦 CAD (C$)</option>
-          <option value="SGD">🇸🇬 SGD (S$)</option>
-          <option value="AED">🇦🇪 AED</option>
-          <option value="CNY">🇨🇳 CNY (¥)</option>
-          <option value="CHF">🇨🇭 CHF</option>
-          <option value="NZD">🇳🇿 NZD</option>
-        </select>
-      </div>
+      <select
+        className="w-full bg-black/40 rounded-xl p-3"
+        value={splitType}
+        onChange={(e) => setSplitType(e.target.value)}
+      >
+        <option value="equal">Equal</option>
+        <option value="exact">Exact</option>
+        <option value="percentage">Percentage</option>
+        <option value="shares">Shares</option>
+      </select>
 
       {/* SPLITS */}
-
-      {(splitType === "exact" ||
-        splitType === "percentage") &&
+      {(splitType === "exact" || splitType === "percentage") &&
         members.map((m) => (
           <input
-            key={m}
+            key={getId(m)}
+            placeholder={splitType === "percentage" ? `${getName(m)} %` : `${getName(m)} amount`}
             type="number"
             className="w-full bg-black/30 rounded-xl p-2"
-            placeholder={
-              splitType === "percentage"
-                ? `${m} %`
-                : `${m} amount`
-            }
-            onChange={(e) =>
-              updateSplit(m, e.target.value)
-            }
+            onChange={(e) => updateSplit(getId(m), e.target.value)}
           />
         ))}
 
       {splitType === "shares" &&
         members.map((m) => (
           <input
-            key={m}
+            key={getId(m)}
+            placeholder={`${getName(m)} shares`}
             type="number"
             className="w-full bg-black/30 rounded-xl p-2"
-            placeholder={`${m} shares`}
-            onChange={(e) =>
-              updateShares(m, e.target.value)
-            }
+            onChange={(e) => updateShares(getId(m), e.target.value)}
           />
         ))}
 
-      {/* PAYMENTS */}
-
+      {/* PAYERS */}
       <div className="pt-4 border-t border-white/20">
-        <h4 className="text-sm text-gray-300 mb-2">
-          Who paid?
-        </h4>
-
+        <h4 className="text-sm text-gray-300 mb-2">Who paid?</h4>
         {members.map((m) => (
           <input
-            key={m}
+            key={getId(m)}
+            placeholder={`${getName(m)} paid`}
             type="number"
             className="w-full bg-black/30 rounded-xl p-2 mb-2"
-            placeholder={`${m} paid`}
-            onChange={(e) =>
-              updatePayment(m, e.target.value)
-            }
+            onChange={(e) => updatePayment(getId(m), e.target.value)}
           />
         ))}
       </div>
 
-      <button
-        className="
-          w-full
-          py-3
-          rounded-xl
-          bg-gradient-to-r
-          from-emerald-400
-          to-cyan-400
-          text-black
-          font-semibold
-          hover:scale-105
-          transition
-        "
-      >
+      <button className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 text-black font-semibold hover:scale-105 transition">
         Add Expense
       </button>
     </form>

@@ -1,103 +1,134 @@
 import { useState } from "react";
+import { fetchJsonWithAuth } from "../api";
 
 const CreateGroupModal = ({ onClose, onCreate }) => {
   const [groupName, setGroupName] = useState("");
-  const [members, setMembers] = useState(["You"]);
-  const [newMember, setNewMember] = useState("");
+  const [members, setMembers] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [searching, setSearching] = useState(false);
 
-  const addMember = () => {
-    if (!newMember.trim()) return;
-    setMembers([...members, newMember.trim()]);
-    setNewMember("");
+  const handleSearch = async (q) => {
+    setSearchQuery(q);
+    if (q.trim().length < 2) {
+      setSearchResults([]);
+      return;
+    }
+    setSearching(true);
+    try {
+      const data = await fetchJsonWithAuth(`/api/users/search?q=${encodeURIComponent(q)}`);
+      // Filter out already added members
+      const filtered = data.users.filter(
+        (u) => !members.find((m) => m._id === u._id)
+      );
+      setSearchResults(filtered);
+    } catch {
+      setSearchResults([]);
+    } finally {
+      setSearching(false);
+    }
   };
 
-  const removeMember = (index) => {
-    if (members[index] === "You") return;
-    setMembers(members.filter((_, i) => i !== index));
+  const addMember = (user) => {
+    setMembers((prev) => [...prev, user]);
+    setSearchQuery("");
+    setSearchResults([]);
+  };
+
+  const removeMember = (id) => {
+    setMembers((prev) => prev.filter((m) => m._id !== id));
   };
 
   const handleCreate = () => {
-    if (!groupName.trim() || members.length === 0) return;
-
+    if (!groupName.trim()) return;
     onCreate({
       name: groupName.trim(),
-      members,
+      memberIds: members.map((m) => m._id),
     });
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
       <div className="bg-[#020617] w-full max-w-md rounded-2xl p-6 space-y-5 text-white">
 
-        <h2 className="text-xl font-bold">
-          Create Group
-        </h2>
+        <h2 className="text-xl font-bold">Create Group</h2>
 
-        {/* GROUP NAME */}
+        {/* Group name */}
         <input
-          className="w-full p-2 rounded bg-black/40 outline-none"
+          className="w-full p-3 rounded-xl bg-black/40 outline-none border border-white/10 focus:border-emerald-400"
           placeholder="Group name"
           value={groupName}
           onChange={(e) => setGroupName(e.target.value)}
         />
 
-        {/* MEMBERS */}
+        {/* Search members */}
         <div>
-          <p className="text-sm text-gray-400 mb-2">
-            Members
-          </p>
-
-          {members.map((m, index) => (
-            <div
-              key={index}
-              className="flex justify-between items-center bg-black/30 p-2 rounded mb-1"
-            >
-              <span>{m}</span>
-              {m !== "You" && (
-                <button
-                  onClick={() => removeMember(index)}
-                  className="flex items-center justify-center p-1.5 rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors duration-200"
-                  aria-label="Remove member"
-                >
-                  <span className="text-sm font-medium">✕</span>
-                </button>
-
-
-              )}
-            </div>
-          ))}
-
-          <div className="flex gap-2 mt-2">
+          <p className="text-sm text-gray-400 mb-2">Add Members</p>
+          <div className="relative">
             <input
-              className="flex-1 p-2 rounded bg-black/40 outline-none"
-              placeholder="Add member"
-              value={newMember}
-              onChange={(e) => setNewMember(e.target.value)}
+              className="w-full p-3 rounded-xl bg-black/40 outline-none border border-white/10 focus:border-emerald-400"
+              placeholder="Search by name or email..."
+              value={searchQuery}
+              onChange={(e) => handleSearch(e.target.value)}
             />
-            <button
-              onClick={addMember}
-              className="px-3 rounded bg-emerald-500 text-black"
-            >
-              Add
-            </button>
+            {searching && (
+              <p className="text-xs text-gray-400 mt-1 px-1">Searching...</p>
+            )}
+            {searchResults.length > 0 && (
+              <div className="absolute z-10 w-full mt-1 bg-slate-900 border border-white/10 rounded-xl overflow-hidden shadow-xl">
+                {searchResults.map((u) => (
+                  <button
+                    key={u._id}
+                    onClick={() => addMember(u)}
+                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition text-left"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-black font-bold text-sm shrink-0">
+                      {u.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">{u.name}</p>
+                      <p className="text-xs text-gray-400">{u.email}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
-        {/* ACTIONS */}
-        <div className="flex justify-end gap-3 pt-4">
-          <button
-            onClick={onClose}
-            className="text-gray-400"
-          >
-            Cancel
-          </button>
+        {/* Added members */}
+        {members.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-sm text-gray-400">Added ({members.length})</p>
+            {members.map((m) => (
+              <div key={m._id} className="flex justify-between items-center bg-white/5 px-4 py-2 rounded-xl">
+                <div className="flex items-center gap-3">
+                  <div className="w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center text-black font-bold text-xs">
+                    {m.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="text-sm">{m.name}</p>
+                    <p className="text-xs text-gray-400">{m.email}</p>
+                  </div>
+                </div>
+                <button onClick={() => removeMember(m._id)} className="text-red-400 text-lg leading-none">✕</button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="flex justify-end gap-3 pt-2">
+          <button onClick={onClose} className="text-gray-400 px-4 py-2">Cancel</button>
           <button
             onClick={handleCreate}
-            className="bg-cyan-400 px-4 py-2 rounded text-black font-medium"
+            disabled={!groupName.trim()}
+            className="bg-cyan-400 px-5 py-2 rounded-xl text-black font-medium disabled:opacity-50"
           >
             Create
           </button>
         </div>
+
       </div>
     </div>
   );

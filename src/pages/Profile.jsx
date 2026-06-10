@@ -6,15 +6,8 @@ const Profile = () => {
   const [activeTab, setActiveTab] = useState("edit");
   const [editForm, setEditForm] = useState({
     name: user?.name || "",
-    email: user?.email || "",
   });
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [passwordForm, setPasswordForm] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: "",
-  });
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
@@ -29,16 +22,6 @@ const Profile = () => {
     }
   };
 
-  const handlePasswordChange = (e) => {
-    e.preventDefault();
-    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      alert("Passwords don't match");
-      return;
-    }
-    alert("Password changed!");
-    setShowPasswordModal(false);
-    setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
-  };
 
   if (!user) return null;
 
@@ -73,11 +56,10 @@ const Profile = () => {
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-4 py-2 rounded-lg font-medium transition text-sm ${
-                  activeTab === tab
-                    ? "bg-emerald-400 text-slate-950"
-                    : "text-slate-400 hover:text-white"
-                }`}
+                className={`px-4 py-2 rounded-lg font-medium transition text-sm ${activeTab === tab
+                  ? "bg-emerald-400 text-slate-950"
+                  : "text-slate-400 hover:text-white"
+                  }`}
               >
                 {tab.charAt(0).toUpperCase() + tab.slice(1)}
               </button>
@@ -102,14 +84,9 @@ const Profile = () => {
                 </div>
                 <div>
                   <label className="block text-sm text-slate-300 mb-2">Email</label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={editForm.email}
-                    onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                    className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none focus:border-emerald-400 text-sm"
-                    required
-                  />
+                  <p className="w-full rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3 text-slate-400 text-sm">
+                    {user?.email}
+                  </p>
                 </div>
                 <button
                   type="submit"
@@ -126,18 +103,6 @@ const Profile = () => {
           {activeTab === "settings" && (
             <div className="space-y-4">
               <h3 className="text-lg font-semibold mb-2">Account Settings</h3>
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-slate-900/50 rounded-xl gap-3">
-                <div>
-                  <h4 className="font-medium text-sm">Change Password</h4>
-                  <p className="text-xs text-slate-400">Update your account password</p>
-                </div>
-                <button
-                  onClick={() => setShowPasswordModal(true)}
-                  className="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-sm transition w-full sm:w-auto"
-                >
-                  Change
-                </button>
-              </div>
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-red-900/20 border border-red-800/50 rounded-xl gap-3">
                 <div>
                   <h4 className="font-medium text-sm text-red-400">Delete Account</h4>
@@ -152,40 +117,6 @@ const Profile = () => {
 
         </div>
       </div>
-
-      {/* Password Modal */}
-      {showPasswordModal && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
-          <div className="bg-slate-950 border border-slate-700 rounded-2xl p-6 w-full max-w-md">
-            <h3 className="text-lg font-semibold mb-4">Change Password</h3>
-            <form onSubmit={handlePasswordChange} className="space-y-4">
-              {["currentPassword", "newPassword", "confirmPassword"].map((field) => (
-                <div key={field}>
-                  <label className="block text-sm text-slate-300 mb-2 capitalize">
-                    {field.replace(/([A-Z])/g, " $1")}
-                  </label>
-                  <input
-                    type="password"
-                    name={field}
-                    value={passwordForm[field]}
-                    onChange={(e) => setPasswordForm({ ...passwordForm, [field]: e.target.value })}
-                    className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none focus:border-emerald-400 text-sm"
-                    required
-                  />
-                </div>
-              ))}
-              <div className="flex flex-col sm:flex-row gap-3">
-                <button type="submit" className="bg-emerald-400 text-slate-950 px-6 py-2 rounded-xl font-semibold hover:bg-emerald-300 transition">
-                  Update Password
-                </button>
-                <button type="button" onClick={() => setShowPasswordModal(false)} className="border border-slate-600 text-slate-300 px-6 py-2 rounded-xl hover:bg-slate-700 transition">
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

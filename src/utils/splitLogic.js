@@ -1,67 +1,59 @@
-export const calculateBalancesWithDetails = (
-  expenses = [],
-  members = []
-) => {
+// members is now an array of objects: { _id, name, email }
+// expenses.paidBy is now an object: { _id, name, email }
+// expenses.splitBetween is now an array of objects: { _id, name, email }
+
+export const calculateBalancesWithDetails = (expenses = [], members = [], currentUserId = null) => {
   const balances = {};
 
-  // initialize structure
+  // Initialize balance for each member using their _id as key
   members.forEach((m) => {
-    balances[m] = {
-      total: 0,
-      breakdown: [],
-    };
+    const id = typeof m === "object" ? m._id?.toString() : m;
+    balances[id] = { total: 0, breakdown: [], name: typeof m === "object" ? m.name : m };
   });
 
   expenses.forEach((expense) => {
     const { description, amount } = expense;
 
-    /* ---------- CREDIT (WHO PAID) ---------- */
+    // WHO PAID — paidBy is now a populated object { _id, name, email }
+    const payerId = expense.paidBy?._id?.toString() || expense.paidBy?.toString();
 
-    // Multi-payer
-    if (expense.paidBy && typeof expense.paidBy === "object") {
-      Object.entries(expense.paidBy).forEach(([payer, value]) => {
-        balances[payer].total += value;
-        balances[payer].breakdown.push({
-          description,
-          amount: +value,
-          type: "paid",
-        });
-      });
-    }
-
-    // Single payer (old data)
-    else if (typeof expense.paidBy === "string") {
-      balances[expense.paidBy].total += amount;
-      balances[expense.paidBy].breakdown.push({
+    if (payerId && balances[payerId] !== undefined) {
+      balances[payerId].total += Number(amount);
+      balances[payerId].breakdown.push({
         description,
-        amount,
+        amount: Number(amount),
         type: "paid",
       });
     }
 
-    /* ---------- DEBIT (WHO OWES) ---------- */
-
-    if (expense.splits && typeof expense.splits === "object") {
-      Object.entries(expense.splits).forEach(([member, value]) => {
-        balances[member].total -= value;
-        balances[member].breakdown.push({
-          description,
-          amount: -value,
-          type: "owed",
-        });
+    // WHO OWES — splitBetween is now an array of populated objects
+    const splitBetween = expense.splitBetween || [];
+    if (splitBetween.length > 0) {
+      const share = Number(amount) / splitBetween.length;
+      splitBetween.forEach((s) => {
+        const sid = s?._id?.toString() || s?.toString();
+        if (sid && balances[sid] !== undefined) {
+          balances[sid].total -= share;
+          balances[sid].breakdown.push({
+            description,
+            amount: -share,
+            type: "owed",
+          });
+        }
       });
-    }
-
-    // Fallback: equal split
-    else {
-      const equal = amount / members.length;
+    } else {
+      // Fallback equal split across all members
+      const share = Number(amount) / members.length;
       members.forEach((m) => {
-        balances[m].total -= equal;
-        balances[m].breakdown.push({
-          description,
-          amount: -equal,
-          type: "owed",
-        });
+        const id = typeof m === "object" ? m._id?.toString() : m;
+        if (balances[id] !== undefined) {
+          balances[id].total -= share;
+          balances[id].breakdown.push({
+            description,
+            amount: -share,
+            type: "owed",
+          });
+        }
       });
     }
   });

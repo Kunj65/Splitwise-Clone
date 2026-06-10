@@ -2,12 +2,11 @@ import mongoose from "mongoose";
 
 const expenseSchema = new mongoose.Schema(
   {
-    group:        { type: mongoose.Schema.Types.ObjectId, ref: "Group", required: true },
-    description:  { type: String, default: "" },
-    amount:       { type: Number, required: true },
-    currency:     { type: String, default: "INR" }, // ✅ ADD THIS
-    paidBy:       { type: String, required: true },
-    splitBetween: { type: [String], default: [] },
+    group: { type: mongoose.Schema.Types.ObjectId, ref: "Group", required: true },
+    description: { type: String, default: "" },
+    amount: { type: Number, required: true },
+    paidBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    splitBetween: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   },
   { timestamps: true }
 );

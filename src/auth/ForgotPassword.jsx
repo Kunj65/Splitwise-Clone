@@ -4,63 +4,93 @@ import { fetchJson } from "../api";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
+  const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
-    setMessage("");
     try {
-      const res = await fetchJson("/api/auth/forgot-password", {
+      await fetchJson("/api/auth/forgot-password", {
         method: "POST",
         body: { email },
       });
-      setMessage(res.message);
+      setSent(true);
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "Something went wrong");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white flex items-center justify-center px-4">
-      <div className="w-full max-w-md rounded-3xl bg-slate-950/90 border border-slate-700 p-8 shadow-xl">
-        <h1 className="text-3xl font-bold mb-2">Forgot Password</h1>
-        <p className="text-slate-400 text-sm mb-6">Enter your email and we'll send a reset link.</p>
+    <div className="min-h-screen flex items-center justify-center px-4"
+      style={{ background: "linear-gradient(135deg, #020617, #0f172a)" }}>
+      <div className="w-full max-w-md">
 
-        {message && <div className="mb-4 rounded-xl bg-emerald-600/20 border border-emerald-500 px-4 py-3 text-sm text-emerald-300">{message}</div>}
-        {error && <div className="mb-4 rounded-xl bg-red-600/90 px-4 py-3 text-sm text-white">{error}</div>}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-emerald-400 mb-2">Splitwise</h1>
+          <p className="text-slate-400 text-sm">Smart Expense Splitting</p>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <label className="block">
-            <span className="text-sm text-slate-300">Email</span>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="mt-2 w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none focus:border-emerald-400"
-            />
-          </label>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-2xl bg-emerald-400 px-4 py-3 font-semibold text-slate-950 transition hover:bg-emerald-300 disabled:opacity-50"
-          >
-            {loading ? "Sending..." : "Send Reset Link"}
-          </button>
-        </form>
+        <div className="bg-slate-900/80 border border-slate-700 rounded-2xl p-8">
+          {sent ? (
+            <div className="text-center">
+              <div className="w-16 h-16 bg-emerald-400/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-3xl">✉️</span>
+              </div>
+              <h2 className="text-xl font-bold mb-2">Check your email</h2>
+              <p className="text-slate-400 text-sm mb-6">
+                If an account exists for <strong className="text-white">{email}</strong>, you'll receive a password reset link shortly.
+              </p>
+              <Link to="/login" className="text-emerald-400 hover:underline text-sm">
+                Back to Login
+              </Link>
+            </div>
+          ) : (
+            <>
+              <h2 className="text-xl font-bold mb-1">Forgot Password</h2>
+              <p className="text-slate-400 text-sm mb-6">Enter your email and we'll send you a reset link.</p>
 
-        <p className="mt-6 text-center text-sm text-slate-400">
-          <Link to="/login" className="text-emerald-400 hover:underline">Back to Login</Link>
-        </p>
+              {error && (
+                <div className="bg-red-900/30 border border-red-700 rounded-xl p-3 mb-4 text-red-400 text-sm">
+                  {error}
+                </div>
+              )}
+
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm text-slate-300 mb-2">Email address</label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-white outline-none focus:border-emerald-400 text-sm"
+                    placeholder="you@example.com"
+                    required
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-emerald-400 text-slate-950 py-3 rounded-xl font-semibold hover:bg-emerald-300 transition disabled:opacity-50"
+                >
+                  {loading ? "Sending..." : "Send Reset Link"}
+                </button>
+              </form>
+
+              <p className="text-center text-slate-400 text-sm mt-4">
+                Remember your password?{" "}
+                <Link to="/login" className="text-emerald-400 hover:underline">Login</Link>
+              </p>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
 };
 
-export default ForgotPassword;  
+export default ForgotPassword;
