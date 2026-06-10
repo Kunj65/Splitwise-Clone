@@ -16,34 +16,11 @@ dotenv.config();
 const app = express();
 const httpServer = createServer(app);
 
-const allowedOrigins = [
-  "http://localhost:5173",
-  process.env.FRONTEND_URL,
-].filter(Boolean);
-
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, curl)
-    if (!origin) return callback(null, true);
-
-    // Allow any Vercel deployment URL for this project
-    if (
-      allowedOrigins.includes(origin) ||
-      origin.endsWith(".vercel.app")
-    ) {
-      return callback(null, true);
-    }
-
-    callback(new Error("Not allowed by CORS"));
-  },
-  credentials: true,
-}));
-
 // Socket.io
 const io = new Server(httpServer, {
   cors: {
     origin: (origin, callback) => {
-      if (!origin || origin.endsWith(".vercel.app") || allowedOrigins.includes(origin)) {
+      if (!origin || origin.endsWith(".vercel.app") || origin === "http://localhost:5173") {
         callback(null, true);
       } else {
         callback(new Error("Not allowed by CORS"));
@@ -53,32 +30,31 @@ const io = new Server(httpServer, {
   },
 });
 
-// Store io on app so routes can access it
 app.set("io", io);
 
 io.on("connection", (socket) => {
-  // Client sends their userId to join their personal room
   socket.on("join", (userId) => {
     socket.join(userId);
     console.log(`User ${userId} joined their room`);
   });
-
   socket.on("disconnect", () => {
     console.log("Socket disconnected:", socket.id);
   });
 });
 
 app.use(helmet());
+
+// Single CORS — allows localhost and all Vercel URLs
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
+    if (!origin || origin.endsWith(".vercel.app") || origin === "http://localhost:5173") {
+      return callback(null, true);
     }
+    callback(new Error("Not allowed by CORS"));
   },
   credentials: true,
 }));
+
 app.use(express.json());
 
 app.get("/health", (req, res) => res.json({ status: "ok" }));
