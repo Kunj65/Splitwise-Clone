@@ -1,6 +1,22 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import dotenv from "dotenv";
 dotenv.config();
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+export const sendMail = async ({ to, subject, html }) => {
+  try {
+    await resend.emails.send({
+      from: "Splitwise App <onboarding@resend.dev>",
+      to,
+      subject,
+      html,
+    });
+    console.log(`Email sent to ${to}`);
+  } catch (err) {
+    console.error("Email failed:", err.message);
+  }
+};
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
