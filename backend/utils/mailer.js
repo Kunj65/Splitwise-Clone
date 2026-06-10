@@ -18,28 +18,6 @@ export const sendMail = async ({ to, subject, html }) => {
   }
 };
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_PASS,
-  },
-});
-
-export const sendMail = async ({ to, subject, html }) => {
-  try {
-    await transporter.sendMail({
-      from: `"Splitwise App"`,
-      to,
-      subject,
-      html,
-    });
-    console.log(`Email sent to ${to}`);
-  } catch (err) {
-    console.error("Email failed:", err.message);
-  }
-};
-
 const baseTemplate = (content) => `
 <!DOCTYPE html>
 <html lang="en">
