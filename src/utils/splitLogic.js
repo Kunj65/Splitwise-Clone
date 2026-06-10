@@ -2,7 +2,7 @@
 // expenses.paidBy is now an object: { _id, name, email }
 // expenses.splitBetween is now an array of objects: { _id, name, email }
 
-export const calculateBalancesWithDetails = (expenses = [], members = [], currentUserId = null) => {
+export const calculateBalancesWithDetails = (expenses = [], members = []) => {
   const balances = {};
 
   // Initialize balance for each member using their _id as key
