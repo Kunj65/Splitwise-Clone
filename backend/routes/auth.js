@@ -5,7 +5,7 @@ import crypto from "crypto";
 import dotenv from "dotenv";
 import User from "../models/User.js";
 import { authMiddleware } from "../middleware/auth.js";
-import { sendMail, forgotPasswordTemplate } from "../utils/mailer.js";
+import { sendMail, forgotPasswordTemplate, otpTemplate } from "../utils/mailer.js";
 
 dotenv.config();
 
@@ -89,22 +89,17 @@ router.patch("/profile", authMiddleware, async (req, res) => {
   }
 });
 
-// FORGOT PASSWORD — sends reset link to email
+// FORGOT PASSWORD
 router.post("/forgot-password", async (req, res) => {
   try {
     const { email } = req.body;
-    if (!email)
-      return res.status(400).json({ message: "Email is required" });
+    if (!email) return res.status(400).json({ message: "Email is required" });
 
     const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) return res.json({ message: "If this email exists, a reset link has been sent." });
 
-    // Always return success even if user not found — security best practice
-    if (!user)
-      return res.json({ message: "If this email exists, a reset link has been sent." });
-
-    // Generate secure random token
     const resetToken = crypto.randomBytes(32).toString("hex");
-    const resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    const resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000);
 
     await User.findByIdAndUpdate(user._id, { resetToken, resetTokenExpiry });
 
@@ -123,7 +118,7 @@ router.post("/forgot-password", async (req, res) => {
   }
 });
 
-// RESET PASSWORD — verifies token and sets new password
+// RESET PASSWORD
 router.post("/reset-password", async (req, res) => {
   try {
     const { token, newPassword } = req.body;
@@ -132,14 +127,12 @@ router.post("/reset-password", async (req, res) => {
 
     const user = await User.findOne({
       resetToken: token,
-      resetTokenExpiry: { $gt: new Date() }, // token not expired
+      resetTokenExpiry: { $gt: new Date() },
     });
 
-    if (!user)
-      return res.status(400).json({ message: "Invalid or expired reset link" });
+    if (!user) return res.status(400).json({ message: "Invalid or expired reset link" });
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-
     await User.findByIdAndUpdate(user._id, {
       password: hashedPassword,
       resetToken: null,
@@ -148,8 +141,63 @@ router.post("/reset-password", async (req, res) => {
 
     return res.json({ message: "Password reset successfully" });
   } catch (err) {
-    console.error("Reset password error:", err);
     return res.status(500).json({ message: "Failed to reset password" });
+  }
+});
+
+// SEND OTP — user enters email, gets 6-digit OTP
+router.post("/send-otp", async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ message: "Email is required" });
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) return res.status(400).json({ message: "No account found with this email" });
+
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    await User.findByIdAndUpdate(user._id, { otp, otpExpiry });
+
+    await sendMail({
+      to: user.email,
+      subject: "Your Splitwise Login Code",
+      html: otpTemplate({ name: user.name, otp }),
+    });
+
+    return res.json({ message: "OTP sent to your email" });
+  } catch (err) {
+    console.error("Send OTP error:", err);
+    return res.status(500).json({ message: "Failed to send OTP" });
+  }
+});
+
+// VERIFY OTP — user enters OTP, gets logged in
+router.post("/verify-otp", async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp)
+      return res.status(400).json({ message: "Email and OTP are required" });
+
+    const user = await User.findOne({
+      email: email.toLowerCase(),
+      otp,
+      otpExpiry: { $gt: new Date() },
+    });
+
+    if (!user) return res.status(400).json({ message: "Invalid or expired OTP" });
+
+    // Clear OTP after successful use
+    await User.findByIdAndUpdate(user._id, { otp: null, otpExpiry: null });
+
+    const token = createToken(user);
+    return res.json({
+      user: { id: user._id, name: user.name, email: user.email, createdAt: user.createdAt },
+      token,
+    });
+  } catch (err) {
+    return res.status(500).json({ message: "OTP verification failed" });
   }
 });
 

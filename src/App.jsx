@@ -6,6 +6,7 @@ import Summary from "./pages/Summary";
 import Activity from "./pages/Activity";
 import Profile from "./pages/Profile";
 import Login from "./auth/Login";
+import LoginOTP from "./auth/LoginOTP";
 import Signup from "./auth/Signup";
 import ForgotPassword from "./auth/ForgotPassword";
 import ResetPassword from "./auth/ResetPassword";
@@ -17,6 +18,7 @@ function App() {
       <Navbar />
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/login-otp" element={<LoginOTP />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />

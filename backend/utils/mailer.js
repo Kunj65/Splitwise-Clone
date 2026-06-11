@@ -113,3 +113,39 @@ export const sendGroupInviteNotification = async ({ toEmail, toName, groupName, 
     `),
   });
 };
+export const otpTemplate = ({ name, otp }) =>
+  baseTemplate(`
+    <h1 style="margin:0 0 8px;font-size:26px;font-weight:700;color:#0f172a;">Your Login Code</h1>
+    <p style="margin:0 0 28px;color:#64748b;font-size:15px;line-height:1.6;">Hi <strong>${name}</strong>, use the code below to log in to your account.</p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+      <tr>
+        <td align="center">
+          <div style="display:inline-block;background:linear-gradient(135deg,#0f172a,#1e3a5f);border-radius:16px;padding:28px 48px;">
+            <p style="margin:0 0 8px;color:#94a3b8;font-size:12px;letter-spacing:2px;text-transform:uppercase;">One-Time Password</p>
+            <p style="margin:0;font-size:48px;font-weight:800;color:#34d399;letter-spacing:16px;">${otp}</p>
+          </div>
+        </td>
+      </tr>
+    </table>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;">
+      <tr>
+        <td style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px 20px;">
+          <p style="margin:0;color:#166534;font-size:14px;">
+            ⏱️ This code expires in <strong>10 minutes</strong>. Enter it on the login page to continue.
+          </p>
+        </td>
+      </tr>
+    </table>
+
+    <table width="100%" cellpadding="0" cellspacing="0">
+      <tr>
+        <td style="background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:16px 20px;">
+          <p style="margin:0;color:#9a3412;font-size:13px;">
+            ⚠️ <strong>Never share this code</strong> with anyone. Splitwise will never ask for your OTP.
+          </p>
+        </td>
+      </tr>
+    </table>
+  `);

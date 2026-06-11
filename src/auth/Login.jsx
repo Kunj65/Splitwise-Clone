@@ -14,7 +14,6 @@ const Login = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError("");
-
     try {
       await login({ email, password });
       navigate(from, { replace: true });
@@ -39,7 +38,7 @@ const Login = () => {
             <span className="text-sm text-slate-300">Email</span>
             <input
               value={email}
-              onChange={(event) => setEmail(event.target.value)}
+              onChange={(e) => setEmail(e.target.value)}
               type="email"
               required
               className="mt-2 w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none focus:border-emerald-400"
@@ -50,7 +49,7 @@ const Login = () => {
             <span className="text-sm text-slate-300">Password</span>
             <input
               value={password}
-              onChange={(event) => setPassword(event.target.value)}
+              onChange={(e) => setPassword(e.target.value)}
               type="password"
               required
               className="mt-2 w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none focus:border-emerald-400"
@@ -65,25 +64,24 @@ const Login = () => {
           </button>
         </form>
 
-        <div className="mt-6 space-y-3 text-center text-sm text-slate-400">
-          <p>
-            <Link to="/forgot-password" className="text-emerald-400 hover:underline">
-              Forgot password?
-            </Link>
-          </p>
-          <p>
-            <Link to="/login-otp" className="text-cyan-400 hover:underline">
-              Login with OTP instead
-            </Link>
-          </p>
-          <p>
-            Don&apos;t have an account?{" "}
-            <Link to="/signup" className="text-emerald-400 hover:underline">
-              Create one
-            </Link>
-          </p>
+        <div className="mt-4 text-center">
+          <Link to="/login-otp" className="text-emerald-400 text-sm hover:underline">
+            Login with OTP instead
+          </Link>
         </div>
 
+        <div className="mt-2 text-center">
+          <Link to="/forgot-password" className="text-slate-400 text-sm hover:underline">
+            Forgot your password?
+          </Link>
+        </div>
+
+        <p className="mt-4 text-center text-sm text-slate-400">
+          Don't have an account?{" "}
+          <Link to="/signup" className="text-emerald-400 hover:underline">
+            Create one
+          </Link>
+        </p>
       </div>
     </div>
   );
