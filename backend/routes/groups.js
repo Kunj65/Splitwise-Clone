@@ -1,7 +1,6 @@
 import express from "express";
 import Group from "../models/Group.js";
 import Expense from "../models/Expense.js";
-import User from "../models/User.js";
 import { authMiddleware } from "../middleware/auth.js";
 import {
   sendExpenseNotification,
@@ -11,7 +10,6 @@ import {
 const router = express.Router();
 router.use(authMiddleware);
 
-// GET all groups for logged in user (as owner or member)
 router.get("/", async (req, res) => {
   try {
     const groups = await Group.find({
@@ -21,7 +19,6 @@ router.get("/", async (req, res) => {
       ],
     }).lean();
 
-    // Filter out old groups that have string members like "You" instead of ObjectIds
     const validGroups = groups.filter((group) =>
       group.members.every((m) => m.toString().length === 24)
     );
@@ -45,7 +42,6 @@ router.get("/", async (req, res) => {
   }
 });
 
-// CREATE a new group
 router.post("/", async (req, res) => {
   try {
     const { name, memberIds } = req.body;
@@ -95,7 +91,6 @@ router.post("/", async (req, res) => {
   }
 });
 
-// GET single group
 router.get("/:groupId", async (req, res) => {
   try {
     const group = await Group.findById(req.params.groupId)
@@ -116,7 +111,6 @@ router.get("/:groupId", async (req, res) => {
   }
 });
 
-// UPDATE a group
 router.patch("/:groupId", async (req, res) => {
   try {
     const group = await Group.findOneAndUpdate(
@@ -132,7 +126,6 @@ router.patch("/:groupId", async (req, res) => {
   }
 });
 
-// ADD expense to a group
 router.post("/:groupId/expenses", async (req, res) => {
   try {
     const { groupId } = req.params;
@@ -159,7 +152,6 @@ router.post("/:groupId/expenses", async (req, res) => {
       (m) => m._id.toString() !== req.user._id.toString()
     );
 
-    // Send email to every other member
     for (const member of otherMembers) {
       sendExpenseNotification({
         toEmail: member.email,
@@ -171,7 +163,6 @@ router.post("/:groupId/expenses", async (req, res) => {
       });
     }
 
-    // Real-time socket update to every other member
     const io = req.app.get("io");
     for (const member of otherMembers) {
       io?.to(member._id.toString()).emit("expense:added", {
