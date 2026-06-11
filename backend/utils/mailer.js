@@ -20,7 +20,7 @@ export const sendMail = async ({ to, subject, html }) => {
       subject,
       html,
     });
-    console.log(`Email sent to ${to}`);
+    console.log(`Email sent`);
   } catch (err) {
     console.error("Email failed:", err.message);
   }
