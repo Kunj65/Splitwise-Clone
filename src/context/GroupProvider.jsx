@@ -109,17 +109,27 @@ export const GroupProvider = ({ children }) => {
     );
   };
 
-  const deleteGroup = async (groupId) => {
+const deleteGroup = async (groupId) => {
   try {
+    const group = groups.find((g) => g.id === groupId || g._id === groupId);
+
     await fetchJsonWithAuth(`/api/groups/${groupId}`, {
       method: "DELETE",
     });
+
     setGroups((prev) => prev.filter((g) => g.id !== groupId && g._id !== groupId));
     setExpensesByGroup((prev) => {
       const updated = { ...prev };
       delete updated[groupId];
       return updated;
     });
+
+    // Log activity
+    activityCtx?.addActivity({
+      type: "group_deleted",
+      message: `Deleted group "${group?.name || "a group"}"`,
+    });
+
   } catch (error) {
     console.error("Failed to delete group:", error);
     throw error;
