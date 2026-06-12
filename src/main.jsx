@@ -9,7 +9,8 @@ import { ActivityProvider } from "./context/ActivityProvider";
 import { SocketProvider } from "./context/SocketProvider";
 import { GroupProvider } from "./context/GroupProvider";
 import { pingBackend } from "./api";
-pingBackend(); // wake up Render immediately when app loads
+pingBackend();
+setInterval(pingBackend, 10 * 60 * 1000); // wake up Render immediately when app loads
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
