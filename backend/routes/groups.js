@@ -178,4 +178,24 @@ router.post("/:groupId/expenses", async (req, res) => {
   }
 });
 
+// DELETE a group
+router.delete("/:groupId", async (req, res) => {
+  try {
+    const group = await Group.findOneAndDelete({
+      _id: req.params.groupId,
+      owner: req.user._id,
+    });
+
+    if (!group) return res.status(404).json({ message: "Group not found or not authorized" });
+
+    // Also delete all expenses for this group
+    await Expense.deleteMany({ group: req.params.groupId });
+
+    return res.json({ message: "Group deleted" });
+  } catch (error) {
+    console.error("Failed to delete group:", error);
+    return res.status(500).json({ message: "Failed to delete group" });
+  }
+});
+
 export default router;
