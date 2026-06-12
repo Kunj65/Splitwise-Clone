@@ -1,18 +1,26 @@
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 dotenv.config();
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false,
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASS,
+  },
+});
 
 export const sendMail = async ({ to, subject, html }) => {
   try {
-    await resend.emails.send({
-      from: "Splitwise App <onboarding@resend.dev>",
-      to: [to],
+    await transporter.sendMail({
+      from: `"Splitwise App" <${process.env.GMAIL_USER}>`,
+      to,
       subject,
       html,
     });
-    console.log(`Email sent to ${to}`);
+    console.log(`Email sent`);
   } catch (err) {
     console.error("Email failed:", err.message);
   }
@@ -76,36 +84,6 @@ export const forgotPasswordTemplate = ({ name, resetLink }) =>
     <p style="margin:0;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px 16px;font-size:12px;color:#64748b;word-break:break-all;text-align:center;">${resetLink}</p>
   `);
 
-export const otpTemplate = ({ name, otp }) =>
-  baseTemplate(`
-    <h1 style="margin:0 0 8px;font-size:26px;font-weight:700;color:#0f172a;">Your Login Code</h1>
-    <p style="margin:0 0 28px;color:#64748b;font-size:15px;line-height:1.6;">Hi <strong>${name}</strong>, use the code below to log in to your account.</p>
-    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
-      <tr>
-        <td align="center">
-          <div style="display:inline-block;background:linear-gradient(135deg,#0f172a,#1e3a5f);border-radius:16px;padding:28px 48px;">
-            <p style="margin:0 0 8px;color:#94a3b8;font-size:12px;letter-spacing:2px;text-transform:uppercase;">One-Time Password</p>
-            <p style="margin:0;font-size:48px;font-weight:800;color:#34d399;letter-spacing:16px;">${otp}</p>
-          </div>
-        </td>
-      </tr>
-    </table>
-    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;">
-      <tr>
-        <td style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px 20px;">
-          <p style="margin:0;color:#166534;font-size:14px;">⏱️ This code expires in <strong>10 minutes</strong>.</p>
-        </td>
-      </tr>
-    </table>
-    <table width="100%" cellpadding="0" cellspacing="0">
-      <tr>
-        <td style="background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:16px 20px;">
-          <p style="margin:0;color:#9a3412;font-size:13px;">⚠️ <strong>Never share this code</strong> with anyone.</p>
-        </td>
-      </tr>
-    </table>
-  `);
-
 export const sendExpenseNotification = async ({ toEmail, toName, groupName, description, amount, paidByName }) => {
   await sendMail({
     to: toEmail,
@@ -143,3 +121,39 @@ export const sendGroupInviteNotification = async ({ toEmail, toName, groupName, 
     `),
   });
 };
+export const otpTemplate = ({ name, otp }) =>
+  baseTemplate(`
+    <h1 style="margin:0 0 8px;font-size:26px;font-weight:700;color:#0f172a;">Your Login Code</h1>
+    <p style="margin:0 0 28px;color:#64748b;font-size:15px;line-height:1.6;">Hi <strong>${name}</strong>, use the code below to log in to your account.</p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+      <tr>
+        <td align="center">
+          <div style="display:inline-block;background:linear-gradient(135deg,#0f172a,#1e3a5f);border-radius:16px;padding:28px 48px;">
+            <p style="margin:0 0 8px;color:#94a3b8;font-size:12px;letter-spacing:2px;text-transform:uppercase;">One-Time Password</p>
+            <p style="margin:0;font-size:48px;font-weight:800;color:#34d399;letter-spacing:16px;">${otp}</p>
+          </div>
+        </td>
+      </tr>
+    </table>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;">
+      <tr>
+        <td style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px 20px;">
+          <p style="margin:0;color:#166534;font-size:14px;">
+            ⏱️ This code expires in <strong>10 minutes</strong>. Enter it on the login page to continue.
+          </p>
+        </td>
+      </tr>
+    </table>
+
+    <table width="100%" cellpadding="0" cellspacing="0">
+      <tr>
+        <td style="background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:16px 20px;">
+          <p style="margin:0;color:#9a3412;font-size:13px;">
+            ⚠️ <strong>Never share this code</strong> with anyone. Splitwise will never ask for your OTP.
+          </p>
+        </td>
+      </tr>
+    </table>
+  `);
