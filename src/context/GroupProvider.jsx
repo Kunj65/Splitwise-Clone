@@ -109,36 +109,37 @@ export const GroupProvider = ({ children }) => {
     );
   };
 
-const deleteGroup = async (groupId) => {
-  try {
-    const group = groups.find((g) => g.id === groupId || g._id === groupId);
+  const deleteGroup = async (groupId) => {
+    try {
+      const group = groups.find((g) => g.id === groupId || g._id === groupId);
 
-    await fetchJsonWithAuth(`/api/groups/${groupId}`, {
-      method: "DELETE",
-    });
+      await fetchJsonWithAuth(`/api/groups/${groupId}`, {
+        method: "DELETE",
+      });
 
-    setGroups((prev) => prev.filter((g) => g.id !== groupId && g._id !== groupId));
-    setExpensesByGroup((prev) => {
-      const updated = { ...prev };
-      delete updated[groupId];
-      return updated;
-    });
+      setGroups((prev) => prev.filter((g) => g.id !== groupId && g._id !== groupId));
+      setExpensesByGroup((prev) => {
+        const updated = { ...prev };
+        delete updated[groupId];
+        return updated;
+      });
 
-    // Log activity
-    activityCtx?.addActivity({
-      type: "group_deleted",
-      message: `Deleted group "${group?.name || "a group"}"`,
-    });
+      if (activityCtx) {
+        await activityCtx.addActivity({
+          type: "group_deleted",
+          message: `Deleted group "${group?.name || "a group"}"`,
+        });
+      }
 
-  } catch (error) {
-    console.error("Failed to delete group:", error);
-    throw error;
-  }
-};
+    } catch (error) {
+      console.error("Failed to delete group:", error);
+      throw error;
+    }
+  };
 
   const archiveGroup = (groupId) => updateGroup(groupId, { archived: true });
   const restoreGroup = (groupId) => updateGroup(groupId, { archived: false });
-  const settleGroup  = (groupId) => updateGroup(groupId, { settled: true });
+  const settleGroup = (groupId) => updateGroup(groupId, { settled: true });
 
   const addExpense = async (groupId, expenseData) => {
     const response = await fetchJsonWithAuth(`/api/groups/${groupId}/expenses`, {
@@ -157,12 +158,12 @@ const deleteGroup = async (groupId) => {
     return response.expense;
   };
 
-return (
-  <GroupContext.Provider value={{
-    groups, expensesByGroup, addGroup, updateGroup,
-    archiveGroup, restoreGroup, settleGroup, deleteGroup, addExpense, loading,
-  }}>
-    {children}
-  </GroupContext.Provider>
-);
+  return (
+    <GroupContext.Provider value={{
+      groups, expensesByGroup, addGroup, updateGroup,
+      archiveGroup, restoreGroup, settleGroup, deleteGroup, addExpense, loading,
+    }}>
+      {children}
+    </GroupContext.Provider>
+  );
 };
