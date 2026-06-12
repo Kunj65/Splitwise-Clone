@@ -109,6 +109,23 @@ export const GroupProvider = ({ children }) => {
     );
   };
 
+  const deleteGroup = async (groupId) => {
+  try {
+    await fetchJsonWithAuth(`/api/groups/${groupId}`, {
+      method: "DELETE",
+    });
+    setGroups((prev) => prev.filter((g) => g.id !== groupId && g._id !== groupId));
+    setExpensesByGroup((prev) => {
+      const updated = { ...prev };
+      delete updated[groupId];
+      return updated;
+    });
+  } catch (error) {
+    console.error("Failed to delete group:", error);
+    throw error;
+  }
+};
+
   const archiveGroup = (groupId) => updateGroup(groupId, { archived: true });
   const restoreGroup = (groupId) => updateGroup(groupId, { archived: false });
   const settleGroup  = (groupId) => updateGroup(groupId, { settled: true });
@@ -130,12 +147,12 @@ export const GroupProvider = ({ children }) => {
     return response.expense;
   };
 
-  return (
-    <GroupContext.Provider value={{
-      groups, expensesByGroup, addGroup, updateGroup,
-      archiveGroup, restoreGroup, settleGroup, addExpense, loading,
-    }}>
-      {children}
-    </GroupContext.Provider>
-  );
+return (
+  <GroupContext.Provider value={{
+    groups, expensesByGroup, addGroup, updateGroup,
+    archiveGroup, restoreGroup, settleGroup, deleteGroup, addExpense, loading,
+  }}>
+    {children}
+  </GroupContext.Provider>
+);
 };

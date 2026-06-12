@@ -47,5 +47,4 @@ export const fetchJsonWithAuth = async (path, options = {}) =>
 export const pingBackend = () => {
   fetch(`${API_BASE_URL}/health`).catch(() => {});
 };
-
 export const getAuthHeaders = () => buildAuthHeaders();
