@@ -58,7 +58,8 @@ export const GroupProvider = ({ children }) => {
       socket.off("group:added", handleGroupAdded);
       socket.off("expense:added", handleExpenseAdded);
     };
-  }, [socketRef?.current]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const loadGroups = async () => {
     try {
