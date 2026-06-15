@@ -10,6 +10,11 @@ import authRoutes from "./routes/auth.js";
 import groupRoutes from "./routes/groups.js";
 import activityRoutes from "./routes/activities.js";
 import userRoutes from "./routes/users.js";
+import settlementRoutes from "./routes/settlements.js";
+import messageRoutes from "./routes/messages.js";
+import { startCronJobs } from "./corn.js";
+import commentRoutes from "./routes/comments.js";
+import recurringRoutes from "./routes/recurring.js";
 
 dotenv.config();
 
@@ -40,6 +45,14 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     console.log("Socket disconnected:", socket.id);
   });
+  socket.on("join:group", (groupId) => {
+    socket.join(groupId);
+  });
+
+  socket.on("leave:group", (groupId) => {
+    socket.leave(groupId);
+  });
+
 });
 
 app.use(helmet());
@@ -69,16 +82,25 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: err.message || "Internal server error" });
 });
 
+app.use("/api/settlements", settlementRoutes);
+
+app.use("/api/messages", messageRoutes);
+
+app.use("/api/comments", commentRoutes);
+
+app.use("/api/recurring", recurringRoutes);
+
 mongoose
   .connect(process.env.MONGODB_URI)
   .then(() => {
-    console.log("Connected to MongoDB");
-    const PORT = process.env.PORT || 4000;
-    httpServer.listen(PORT, () => {
-      console.log(`Backend listening on PORT:${PORT}`);
-    });
-  })
+  console.log("Connected to MongoDB");
+  startCronJobs(); // ← add this line
+  const PORT = process.env.PORT || 4000;
+  httpServer.listen(PORT, () => {
+    console.log(`Backend listening on PORT:${PORT}`);
+  });
+})
   .catch((err) => {
     console.error("MongoDB connection failed:", err);
     process.exit(1);
-  });
+  }); 

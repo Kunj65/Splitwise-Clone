@@ -6,6 +6,7 @@ import {
   sendExpenseNotification,
   sendGroupInviteNotification,
 } from "../utils/mailer.js";
+import { upload } from "../utils/cloudinary.js";
 
 const router = express.Router();
 router.use(authMiddleware);
@@ -108,6 +109,16 @@ router.get("/:groupId", async (req, res) => {
     return res.json({ group, expenses });
   } catch (error) {
     return res.status(500).json({ message: "Failed to load group" });
+  }
+});
+
+router.post("/:groupId/upload-receipt", upload.single("receipt"), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+    return res.json({ url: req.file.path });
+  } catch (err) {
+    console.error("Upload failed:", err);
+    return res.status(500).json({ message: "Upload failed" });
   }
 });
 
