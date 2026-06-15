@@ -1,7 +1,7 @@
-import { useState, useEffect, useContext } from "react";
 import GroupContext from "./GroupContext";
 import useAuth from "../auth/useAuth";
 import { fetchJsonWithAuth } from "../api";
+import { useState, useEffect, useContext } from "react";
 import ActivityContext from "./ActivityContext";
 import useSocket from "./useSocket";
 
@@ -23,7 +23,7 @@ export const GroupProvider = ({ children }) => {
     }
   }, [user]);
 
-  // Real-time: someone added you to a group
+  // Socket listeners for real-time updates
   useEffect(() => {
     const socket = socketRef?.current;
     if (!socket) return;
@@ -79,61 +79,46 @@ export const GroupProvider = ({ children }) => {
       setExpensesByGroup(expensesMap);
     } catch (error) {
       console.error("Failed to load groups:", error);
+      // Don't fallback to fake data — show empty
+      setGroups([]);
+      setExpensesByGroup({});
     } finally {
       setLoading(false);
     }
   };
 
   const addGroup = async (groupData) => {
-    const response = await fetchJsonWithAuth("/api/groups", {
-      method: "POST",
-      body: groupData,
-    });
-    const newGroup = { ...response.group, id: response.group._id };
-    setGroups((prev) => [...prev, newGroup]);
-    activityCtx?.addActivity({
-      type: "group_created",
-      message: `Created group "${newGroup.name}"`,
-    });
-    return newGroup;
+    try {
+      const response = await fetchJsonWithAuth("/api/groups", {
+        method: "POST",
+        body: groupData,
+      });
+      const newGroup = { ...response.group, id: response.group._id };
+      setGroups((prev) => [...prev, newGroup]);
+      activityCtx?.addActivity({
+        type: "group_created",
+        message: `Created group "${newGroup.name}"`,
+      });
+      return newGroup;
+    } catch (error) {
+      console.error("Failed to create group:", error);
+      throw error;
+    }
   };
 
   const updateGroup = async (groupId, updates) => {
-    await fetchJsonWithAuth(`/api/groups/${groupId}`, {
-      method: "PATCH",
-      body: updates,
-    });
-    setGroups((prev) =>
-      prev.map((g) =>
-        g.id === groupId || g._id === groupId ? { ...g, ...updates } : g
-      )
-    );
-  };
-
-  const deleteGroup = async (groupId) => {
     try {
-      const group = groups.find((g) => g.id === groupId || g._id === groupId);
-
       await fetchJsonWithAuth(`/api/groups/${groupId}`, {
-        method: "DELETE",
+        method: "PATCH",
+        body: updates,
       });
-
-      setGroups((prev) => prev.filter((g) => g.id !== groupId && g._id !== groupId));
-      setExpensesByGroup((prev) => {
-        const updated = { ...prev };
-        delete updated[groupId];
-        return updated;
-      });
-
-      if (activityCtx) {
-        await activityCtx.addActivity({
-          type: "group_deleted",
-          message: `Deleted group "${group?.name || "a group"}"`,
-        });
-      }
-
+      setGroups((prev) =>
+        prev.map((g) =>
+          g.id === groupId || g._id === groupId ? { ...g, ...updates } : g
+        )
+      );
     } catch (error) {
-      console.error("Failed to delete group:", error);
+      console.error("Failed to update group:", error);
       throw error;
     }
   };
@@ -142,27 +127,55 @@ export const GroupProvider = ({ children }) => {
   const restoreGroup = (groupId) => updateGroup(groupId, { archived: false });
   const settleGroup = (groupId) => updateGroup(groupId, { settled: true });
 
+  const deleteGroup = async (groupId) => {
+    try {
+      const group = groups.find((g) => g.id === groupId || g._id === groupId);
+      await fetchJsonWithAuth(`/api/groups/${groupId}`, { method: "DELETE" });
+      setGroups((prev) => prev.filter((g) => g.id !== groupId && g._id !== groupId));
+      setExpensesByGroup((prev) => {
+        const updated = { ...prev };
+        delete updated[groupId];
+        return updated;
+      });
+      if (activityCtx) {
+        await activityCtx.addActivity({
+          type: "group_deleted",
+          message: `Deleted group "${group?.name || "a group"}"`,
+        });
+      }
+    } catch (error) {
+      console.error("Failed to delete group:", error);
+      throw error;
+    }
+  };
+
   const addExpense = async (groupId, expenseData) => {
-    const response = await fetchJsonWithAuth(`/api/groups/${groupId}/expenses`, {
-      method: "POST",
-      body: expenseData,
-    });
-    setExpensesByGroup((prev) => ({
-      ...prev,
-      [groupId]: [...(prev[groupId] || []), response.expense],
-    }));
-    const group = groups.find((g) => g.id === groupId || g._id === groupId);
-    activityCtx?.addActivity({
-      type: "expense_added",
-      message: `Added expense "${expenseData.description}" of ₹${expenseData.amount} in "${group?.name || "a group"}"`,
-    });
-    return response.expense;
+    try {
+      const response = await fetchJsonWithAuth(`/api/groups/${groupId}/expenses`, {
+        method: "POST",
+        body: expenseData,
+      });
+      setExpensesByGroup((prev) => ({
+        ...prev,
+        [groupId]: [...(prev[groupId] || []), response.expense],
+      }));
+      const group = groups.find((g) => g.id === groupId || g._id === groupId);
+      activityCtx?.addActivity({
+        type: "expense_added",
+        message: `Added expense "${expenseData.description}" of ₹${expenseData.amount} in "${group?.name || "a group"}"`,
+      });
+      return response.expense;
+    } catch (error) {
+      console.error("Failed to add expense:", error);
+      throw error;
+    }
   };
 
   return (
     <GroupContext.Provider value={{
-      groups, expensesByGroup, addGroup, updateGroup,
-      archiveGroup, restoreGroup, settleGroup, deleteGroup, addExpense, loading,
+      groups, expensesByGroup, loading,
+      addGroup, updateGroup, archiveGroup,
+      restoreGroup, settleGroup, deleteGroup, addExpense,
     }}>
       {children}
     </GroupContext.Provider>

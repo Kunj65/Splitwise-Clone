@@ -4,7 +4,7 @@ import useGroups from "../context/useGroups";
 import CreateGroupModal from "../components/CreateGroupModal";
 
 const Home = () => {
-  const { groups, addGroup, restoreGroup, deleteGroup } = useGroups();
+  const { groups, addGroup, restoreGroup, deleteGroup, loading } = useGroups();
   const [showCreate, setShowCreate] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
 
@@ -39,7 +39,14 @@ const Home = () => {
           </button>
         </div>
 
-        {activeGroups.length === 0 ? (
+        {loading ? (
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-20 bg-white/5 rounded-2xl animate-pulse" />
+            ))}
+          </div>
+
+          ) : activeGroups.length === 0 ? (
           <p className="text-gray-400">No groups yet. Create one!</p>
         ) : (
           <div className="space-y-4">
