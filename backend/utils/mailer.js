@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
+  host: "smtp-relay.brevo.com",
   port: 587,
   secure: false,
   auth: {
@@ -15,12 +15,12 @@ const transporter = nodemailer.createTransport({
 export const sendMail = async ({ to, subject, html }) => {
   try {
     await transporter.sendMail({
-      from: `"Splitwise App" <${process.env.GMAIL_USER}>`,
+      from: `"Splitwise App" <${process.env.BREVO_USER}>`,
       to,
       subject,
       html,
     });
-    console.log(`Email sent`);
+    console.log(`Email sent to ${to}`);
   } catch (err) {
     console.error("Email failed:", err.message);
   }
