@@ -1,20 +1,26 @@
 import { useState } from "react";
 import useAuth from "../auth/useAuth";
+import AnimatedPage from "../components/AnimatedPage";
 
 const Profile = () => {
   const { user, updateProfile } = useAuth();
+
   const [activeTab, setActiveTab] = useState("edit");
+
   const [editForm, setEditForm] = useState({
     name: user?.name || "",
   });
+
   const [saving, setSaving] = useState(false);
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
+
     setSaving(true);
+
     try {
       await updateProfile(editForm);
-      alert("Profile updated!");
+      alert("Profile updated successfully");
     } catch {
       alert("Failed to update profile");
     } finally {
@@ -22,102 +28,313 @@ const Profile = () => {
     }
   };
 
-
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white py-6 px-4">
-      <div className="max-w-4xl mx-auto">
+    <AnimatedPage>
+          <div className="space-y-8">
 
-        <div className="mb-6">
-          <h1 className="text-2xl sm:text-3xl font-bold mb-1">Profile</h1>
-          <p className="text-slate-400 text-sm">Manage your account settings</p>
-        </div>
+      {/* Header */}
+      <div>
+        <h1 className="text-4xl font-bold">
+          Profile
+        </h1>
 
-        <div className="bg-slate-950/90 border border-slate-700 rounded-2xl sm:rounded-3xl p-4 sm:p-8 mb-6">
+        <p className="text-slate-400 mt-2">
+          Manage your account information and settings
+        </p>
+      </div>
 
-          {/* Avatar + Info */}
-          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 mb-6">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-emerald-400 rounded-full flex items-center justify-center text-slate-950 text-2xl font-bold shrink-0">
-              {user.name?.charAt(0)?.toUpperCase()}
-            </div>
-            <div className="text-center sm:text-left">
-              <h2 className="text-xl sm:text-2xl font-bold">{user.name}</h2>
-              <p className="text-slate-400 text-sm">{user.email}</p>
-              <p className="text-xs text-slate-500 mt-1">
-                Member since {new Date(user.createdAt || Date.now()).toLocaleDateString()}
-              </p>
-            </div>
-          </div>
+      {/* Profile Card */}
+      <div
+        className="
+          glass
+          rounded-[32px]
+          border
+          border-white/10
+          p-8
+        "
+      >
+        <div className="flex flex-col lg:flex-row gap-8">
 
-          {/* Tabs */}
-          <div className="flex gap-2 border-b border-slate-700 mb-6">
-            {["edit", "settings"].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-4 py-2 rounded-lg font-medium transition text-sm ${activeTab === tab
-                  ? "bg-emerald-400 text-slate-950"
-                  : "text-slate-400 hover:text-white"
-                  }`}
+          {/* Left Side */}
+          <div className="lg:w-80">
+
+            <div
+              className="
+                rounded-[32px]
+                border
+                border-white/10
+                bg-white/[0.03]
+                p-6
+                text-center
+              "
+            >
+              <div
+                className="
+                  h-28
+                  w-28
+                  mx-auto
+                  rounded-full
+                  bg-gradient-to-r
+                  from-cyan-400
+                  to-emerald-400
+                  text-black
+                  text-4xl
+                  font-bold
+                  flex
+                  items-center
+                  justify-center
+                "
               >
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
-              </button>
-            ))}
-          </div>
+                {user?.name?.charAt(0)?.toUpperCase()}
+              </div>
 
-          {/* Edit Tab */}
-          {activeTab === "edit" && (
-            <div className="max-w-md w-full">
-              <h3 className="text-lg font-semibold mb-4">Edit Profile</h3>
-              <form onSubmit={handleEditSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-sm text-slate-300 mb-2">Name</label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={editForm.name}
-                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                    className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none focus:border-emerald-400 text-sm"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm text-slate-300 mb-2">Email</label>
-                  <p className="w-full rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3 text-slate-400 text-sm">
-                    {user?.email}
-                  </p>
-                </div>
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="w-full sm:w-auto bg-emerald-400 text-slate-950 px-6 py-2 rounded-xl font-semibold hover:bg-emerald-300 transition disabled:opacity-50"
-                >
-                  {saving ? "Saving..." : "Save Changes"}
-                </button>
-              </form>
-            </div>
-          )}
+              <h2 className="text-2xl font-bold mt-5">
+                {user?.name}
+              </h2>
 
-          {/* Settings Tab */}
-          {activeTab === "settings" && (
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold mb-2">Account Settings</h3>
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-red-900/20 border border-red-800/50 rounded-xl gap-3">
-                <div>
-                  <h4 className="font-medium text-sm text-red-400">Delete Account</h4>
-                  <p className="text-xs text-slate-400">Permanently delete your account</p>
-                </div>
-                <button className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-sm transition w-full sm:w-auto">
-                  Delete
-                </button>
+              <p className="text-slate-400 mt-1 break-all">
+                {user?.email}
+              </p>
+
+              <div
+                className="
+                  mt-5
+                  inline-flex
+                  px-4
+                  py-2
+                  rounded-full
+                  bg-emerald-400/10
+                  text-emerald-400
+                  text-sm
+                "
+              >
+                Active Member
               </div>
             </div>
-          )}
+
+            <div
+              className="
+                rounded-[32px]
+                border
+                border-white/10
+                bg-white/[0.03]
+                p-6
+                mt-5
+              "
+            >
+              <p className="text-slate-500 text-sm">
+                Member Since
+              </p>
+
+              <h3 className="font-semibold mt-2">
+                {new Date(
+                  user?.createdAt || Date.now()
+                ).toLocaleDateString()}
+              </h3>
+            </div>
+
+          </div>
+
+          {/* Right Side */}
+          <div className="flex-1">
+
+            {/* Tabs */}
+            <div className="flex gap-3 mb-8">
+
+              <button
+                onClick={() => setActiveTab("edit")}
+                className={`
+                  px-5
+                  py-3
+                  rounded-2xl
+                  font-medium
+                  transition-all
+                  ${
+                    activeTab === "edit"
+                      ? "bg-gradient-to-r from-cyan-400 to-emerald-400 text-black"
+                      : "bg-white/[0.04] border border-white/10 text-slate-300"
+                  }
+                `}
+              >
+                Edit Profile
+              </button>
+
+              <button
+                onClick={() => setActiveTab("settings")}
+                className={`
+                  px-5
+                  py-3
+                  rounded-2xl
+                  font-medium
+                  transition-all
+                  ${
+                    activeTab === "settings"
+                      ? "bg-gradient-to-r from-cyan-400 to-emerald-400 text-black"
+                      : "bg-white/[0.04] border border-white/10 text-slate-300"
+                  }
+                `}
+              >
+                Settings
+              </button>
+
+            </div>
+
+            {/* Edit Tab */}
+            {activeTab === "edit" && (
+              <div
+                className="
+                  rounded-[32px]
+                  border
+                  border-white/10
+                  bg-white/[0.03]
+                  p-6
+                "
+              >
+                <h3 className="text-2xl font-bold mb-6">
+                  Edit Profile
+                </h3>
+
+                <form
+                  onSubmit={handleEditSubmit}
+                  className="space-y-5"
+                >
+                  <div>
+                    <label className="block text-sm text-slate-400 mb-2">
+                      Full Name
+                    </label>
+
+                    <input
+                      type="text"
+                      value={editForm.name}
+                      onChange={(e) =>
+                        setEditForm({
+                          ...editForm,
+                          name: e.target.value,
+                        })
+                      }
+                      className="
+                        w-full
+                        h-12
+                        rounded-2xl
+                        bg-white/[0.04]
+                        border
+                        border-white/10
+                        px-4
+                        outline-none
+                        focus:border-cyan-400
+                      "
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm text-slate-400 mb-2">
+                      Email Address
+                    </label>
+
+                    <input
+                      value={user?.email}
+                      disabled
+                      className="
+                        w-full
+                        h-12
+                        rounded-2xl
+                        bg-black/20
+                        border
+                        border-white/10
+                        px-4
+                        text-slate-500
+                      "
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={saving}
+                    className="
+                      px-6
+                      py-3
+                      rounded-2xl
+                      bg-gradient-to-r
+                      from-cyan-400
+                      to-emerald-400
+                      text-black
+                      font-semibold
+                      transition-all
+                      hover:scale-[1.02]
+                      disabled:opacity-50
+                    "
+                  >
+                    {saving
+                      ? "Saving..."
+                      : "Save Changes"}
+                  </button>
+                </form>
+              </div>
+            )}
+
+            {/* Settings Tab */}
+            {activeTab === "settings" && (
+              <div
+                className="
+                  rounded-[32px]
+                  border
+                  border-white/10
+                  bg-white/[0.03]
+                  p-6
+                "
+              >
+                <h3 className="text-2xl font-bold mb-6">
+                  Account Settings
+                </h3>
+
+                <div
+                  className="
+                    rounded-3xl
+                    border
+                    border-red-500/20
+                    bg-red-500/5
+                    p-5
+                  "
+                >
+                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+
+                    <div>
+                      <h4 className="font-semibold text-red-400">
+                        Delete Account
+                      </h4>
+
+                      <p className="text-sm text-slate-400 mt-1">
+                        Permanently remove your account and all associated data.
+                      </p>
+                    </div>
+
+                    <button
+                      className="
+                        px-5
+                        py-3
+                        rounded-2xl
+                        bg-red-500
+                        hover:bg-red-600
+                        transition
+                      "
+                    >
+                      Delete Account
+                    </button>
+
+                  </div>
+                </div>
+              </div>
+            )}
+
+          </div>
 
         </div>
       </div>
+
     </div>
+    </AnimatedPage>
   );
 };
 

@@ -9,6 +9,7 @@ const ExpenseForm = ({ members, onAddExpense, groupId }) => {
   const [payments, setPayments] = useState({});
   const [receiptUrl, setReceiptUrl] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [category, setCategory] = useState("other");
 
   const getName = (m) => (typeof m === "object" ? m.name : m);
   const getId = (m) => (typeof m === "object" ? m._id : m);
@@ -16,6 +17,16 @@ const ExpenseForm = ({ members, onAddExpense, groupId }) => {
   const updateSplit = (id, v) => setSplits((p) => ({ ...p, [id]: Number(v) }));
   const updateShares = (id, v) => setShares((p) => ({ ...p, [id]: Number(v) }));
   const updatePayment = (id, v) => setPayments((p) => ({ ...p, [id]: Number(v) }));
+  const CATEGORIES = [
+    { value: "food", label: "🍔 Food" },
+    { value: "travel", label: "✈️ Travel" },
+    { value: "rent", label: "🏠 Rent" },
+    { value: "utilities", label: "💡 Utilities" },
+    { value: "entertainment", label: "🎬 Entertainment" },
+    { value: "shopping", label: "🛍️ Shopping" },
+    { value: "health", label: "💊 Health" },
+    { value: "other", label: "📦 Other" },
+  ];
 
   const handleReceiptUpload = async (e) => {
     const file = e.target.files[0];
@@ -86,6 +97,7 @@ const ExpenseForm = ({ members, onAddExpense, groupId }) => {
         paidById,
         splitBetweenIds,
         receiptUrl,
+        category,
       });
       setDescription("");
       setAmount("");
@@ -100,26 +112,115 @@ const ExpenseForm = ({ members, onAddExpense, groupId }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="glass rounded-3xl p-6 space-y-4 fade-up">
-      <h3 className="text-xl font-semibold">Add Expense</h3>
+    <form
+      onSubmit={handleSubmit}
+      className="
+    glass
+    rounded-[32px]
+    p-8
+    space-y-6
+    fade-up
+    border
+    border-white/10
+  "
+    >
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-2xl font-bold">
+            Add Expense
+          </h3>
+
+          <p className="text-slate-400 text-sm mt-1">
+            Record and split expenses among group members
+          </p>
+        </div>
+
+        <div
+          className="
+      h-12
+      w-12
+      rounded-2xl
+      bg-gradient-to-r
+      from-cyan-400
+      to-emerald-400
+      flex
+      items-center
+      justify-center
+      text-black
+      font-bold
+    "
+        >
+          ₹
+        </div>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-4">
+
+        <select
+          className="
+      h-12
+      rounded-2xl
+      bg-white/[0.04]
+      border
+      border-white/10
+      px-4
+      outline-none
+    "
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+        >
+          {CATEGORIES.map((c) => (
+            <option key={c.value} value={c.value}>
+              {c.label}
+            </option>
+          ))}
+        </select>
+
+        <input
+          type="number"
+          placeholder="Amount"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          className="
+      h-12
+      rounded-2xl
+      bg-white/[0.04]
+      border
+      border-white/10
+      px-4
+      outline-none
+    "
+        />
+
+      </div>
 
       <input
-        className="w-full bg-black/40 rounded-xl p-3"
-        placeholder="Description"
+        placeholder="Dinner, Hotel, Cab..."
         value={description}
         onChange={(e) => setDescription(e.target.value)}
-      />
-
-      <input
-        type="number"
-        className="w-full bg-black/40 rounded-xl p-3"
-        placeholder="Amount"
-        value={amount}
-        onChange={(e) => setAmount(e.target.value)}
+        className="
+    w-full
+    h-12
+    rounded-2xl
+    bg-white/[0.04]
+    border
+    border-white/10
+    px-4
+    outline-none
+  "
       />
 
       <select
-        className="w-full bg-black/40 rounded-xl p-3"
+        className="
+  w-full
+  h-12
+  rounded-2xl
+  bg-white/[0.04]
+  border
+  border-white/10
+  px-4
+  outline-none
+"
         value={splitType}
         onChange={(e) => setSplitType(e.target.value)}
       >
@@ -135,7 +236,16 @@ const ExpenseForm = ({ members, onAddExpense, groupId }) => {
             key={getId(m)}
             placeholder={splitType === "percentage" ? `${getName(m)} %` : `${getName(m)} amount`}
             type="number"
-            className="w-full bg-black/30 rounded-xl p-2"
+            className="
+                w-full
+                h-11
+                rounded-xl
+                bg-white/[0.04]
+                border
+                border-white/10
+                px-4
+                outline-none
+              "
             onChange={(e) => updateSplit(getId(m), e.target.value)}
           />
         ))}
@@ -146,7 +256,16 @@ const ExpenseForm = ({ members, onAddExpense, groupId }) => {
             key={getId(m)}
             placeholder={`${getName(m)} shares`}
             type="number"
-            className="w-full bg-black/30 rounded-xl p-2"
+            className="
+                w-full
+                h-11
+                rounded-xl
+                bg-white/[0.04]
+                border
+                border-white/10
+                px-4
+                outline-none
+              "
             onChange={(e) => updateShares(getId(m), e.target.value)}
           />
         ))}
@@ -158,7 +277,17 @@ const ExpenseForm = ({ members, onAddExpense, groupId }) => {
             key={getId(m)}
             placeholder={`${getName(m)} paid`}
             type="number"
-            className="w-full bg-black/30 rounded-xl p-2 mb-2"
+            className="
+                w-full
+                h-11
+                rounded-xl
+                bg-white/[0.04]
+                border
+                border-white/10
+                px-4
+                mb-2
+                outline-none
+              "
             onChange={(e) => updatePayment(getId(m), e.target.value)}
           />
         ))}
@@ -176,13 +305,37 @@ const ExpenseForm = ({ members, onAddExpense, groupId }) => {
         {uploading && <p className="text-xs text-slate-400 mt-1">Uploading...</p>}
         {receiptUrl && (
           <div className="mt-2">
-            <img src={receiptUrl} alt="Receipt" className="w-24 h-24 object-cover rounded-xl" />
+            <img
+              src={receiptUrl}
+              alt="Receipt"
+              className="
+                w-28
+                h-28
+                object-cover
+                rounded-2xl
+                border
+                border-white/10
+              "
+            />
             <p className="text-xs text-emerald-400 mt-1">✅ Receipt uploaded</p>
           </div>
         )}
       </div>
 
-      <button className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 text-black font-semibold hover:scale-105 transition">
+      <button
+        className="
+    w-full
+    h-14
+    rounded-2xl
+    bg-gradient-to-r
+    from-cyan-400
+    to-emerald-400
+    text-black
+    font-bold
+    transition-all
+    hover:scale-[1.01]
+  "
+      >
         Add Expense
       </button>
     </form>

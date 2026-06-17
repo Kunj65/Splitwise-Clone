@@ -5,29 +5,42 @@ import { useState, useEffect } from "react";
 
 export const ActivityProvider = ({ children }) => {
   const { user } = useAuth();
+
   const [activities, setActivities] = useState([]);
+  const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Load activities from backend when user changes
   useEffect(() => {
     if (user) {
       loadActivities();
     } else {
       setActivities([]);
+      setNotifications([]);
     }
   }, [user]);
 
   const loadActivities = async () => {
     try {
       setLoading(true);
-      const response = await fetchJsonWithAuth("/api/activities");
-      const mapped = (response.activities || []).map((a) => ({
-        ...a,
-        id: a._id,  // ✅ FIX: map _id to id for consistency
-      }));
+
+      const response = await fetchJsonWithAuth(
+        "/api/activities"
+      );
+
+      const mapped = (response.activities || []).map(
+        (activity) => ({
+          ...activity,
+          id: activity._id,
+        })
+      );
+
       setActivities(mapped);
     } catch (error) {
-      console.error("Failed to load activities:", error);
+      console.error(
+        "Failed to load activities:",
+        error
+      );
+
       setActivities([]);
     } finally {
       setLoading(false);
@@ -36,37 +49,89 @@ export const ActivityProvider = ({ children }) => {
 
   const addActivity = async (activityData) => {
     try {
-      const response = await fetchJsonWithAuth("/api/activities", {
-        method: "POST",
-        body: activityData,
-      });
+      const response = await fetchJsonWithAuth(
+        "/api/activities",
+        {
+          method: "POST",
+          body: activityData,
+        }
+      );
 
       const newActivity = {
         ...response.activity,
-        id: response.activity._id, // Map _id to id for frontend compatibility
+        id: response.activity._id,
         createdAt: response.activity.createdAt,
       };
 
-      setActivities((prev) => [newActivity, ...prev]);
+      setActivities((prev) => [
+        newActivity,
+        ...prev,
+      ]);
+
       return newActivity;
     } catch (error) {
-      console.error("Failed to add activity:", error);
+      console.error(
+        "Failed to add activity:",
+        error
+      );
+
       throw error;
     }
   };
 
-  const clearActivities = async () => {
-    // Note: This would need a backend endpoint to clear activities
-    // For now, just clear local state
+  const clearActivities = () => {
     setActivities([]);
   };
+
+  const addNotification = (
+    notificationData
+  ) => {
+    const notification = {
+      id: Date.now().toString(),
+      ...notificationData,
+      read: false,
+      createdAt: new Date().toISOString(),
+    };
+
+    setNotifications((prev) => [
+      notification,
+      ...prev,
+    ]);
+
+    return notification;
+  };
+
+  const markAllNotificationsAsRead = () => {
+    setNotifications((prev) =>
+      prev.map((notification) => ({
+        ...notification,
+        read: true,
+      }))
+    );
+  };
+
+  const clearNotifications = () => {
+    setNotifications([]);
+  };
+
+  const unreadCount = notifications.filter(
+    (notification) => !notification.read
+  ).length;
 
   return (
     <ActivityContext.Provider
       value={{
         activities,
+        notifications,
+
         addActivity,
         clearActivities,
+
+        addNotification,
+        markAllNotificationsAsRead,
+        clearNotifications,
+
+        unreadCount,
         loading,
       }}
     >

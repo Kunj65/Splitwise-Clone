@@ -15,6 +15,9 @@ import messageRoutes from "./routes/messages.js";
 import { startCronJobs } from "./corn.js";
 import commentRoutes from "./routes/comments.js";
 import recurringRoutes from "./routes/recurring.js";
+import rateLimit from "express-rate-limit";
+import friendRoutes from "./routes/friends.js";
+
 
 dotenv.config();
 
@@ -70,6 +73,24 @@ app.use(cors({
 
 app.use(express.json());
 
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100,
+  message: { message: "Too many requests, please try again later." }
+});
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { message: "Too many attempts, please try again in 15 minutes." }
+});
+
+app.use("/api", limiter);
+app.use("/api/auth/login", authLimiter);
+app.use("/api/auth/send-otp", authLimiter);
+app.use("/api/auth/forgot-password", authLimiter);
+
 app.get("/health", (req, res) => res.json({ status: "ok" }));
 
 app.use("/api/auth", authRoutes);
@@ -89,6 +110,8 @@ app.use("/api/messages", messageRoutes);
 app.use("/api/comments", commentRoutes);
 
 app.use("/api/recurring", recurringRoutes);
+
+app.use("/api/friends", friendRoutes);  
 
 mongoose
   .connect(process.env.MONGODB_URI)

@@ -1,27 +1,332 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* =========================
+   ROOT VARIABLES
+========================= */
+
+:root {
+  --bg-primary: #050b0a;
+  --bg-secondary: #0b1317;
+  --card-bg: rgba(15, 23, 42, 0.55);
+  --cyan: #57c8f5;
+  --emerald: #58f0d1;
+  --success: #10b981;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --radius-card: 24px;
+  --radius-button: 16px;
+  --border-color: rgba(255,255,255,0.08);
+  --input-bg: rgba(255,255,255,0.04);
+}
+
+html.light {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #eef6ff;
+  --card-bg: rgba(255,255,255,0.8);
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --border-color: rgba(148,163,184,0.2);
+  --input-bg: rgba(255,255,255,0.9);
+}
+
+/* =========================
+   BODY
+========================= */
+
+html { scroll-behavior: smooth; }
+
 body {
   min-height: 100vh;
-  color: #e5e7eb;
+  font-family: 'Inter', sans-serif;
+  color: var(--text-primary);
   background:
-    radial-gradient(circle at 20% 20%, rgba(99,102,241,0.35), transparent 40%),
-    radial-gradient(circle at 80% 0%, rgba(16,185,129,0.35), transparent 40%),
-    linear-gradient(135deg, #020617, #020617);
-  font-family: Inter, system-ui, sans-serif;
+    radial-gradient(circle at top left, rgba(87,200,245,0.18), transparent 35%),
+    radial-gradient(circle at top right, rgba(88,240,209,0.18), transparent 35%),
+    linear-gradient(135deg, #030712 0%, #07111a 50%, #030712 100%);
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
-/* Glass card */
+html.light body {
+  color: #0f172a;
+  background:
+    radial-gradient(circle at top left, rgba(87,200,245,0.1), transparent 35%),
+    radial-gradient(circle at top right, rgba(88,240,209,0.1), transparent 35%),
+    linear-gradient(135deg, #f8fafc 0%, #eef6ff 50%, #f8fafc 100%);
+}
+
+/* =========================
+   SCROLLBAR
+========================= */
+
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
+
+html.light ::-webkit-scrollbar-thumb { background: rgba(100,116,139,0.25); }
+html.light ::-webkit-scrollbar-thumb:hover { background: rgba(100,116,139,0.4); }
+
+/* =========================
+   GLASS CARDS
+========================= */
+
 .glass {
-  @apply bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl;
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* Smooth entrance */
+.glass-card {
+  background: rgba(255,255,255,0.03);
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 24px;
+}
+
+.dashboard-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  backdrop-filter: blur(18px);
+  border-radius: 24px;
+  transition: all 0.25s ease;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(88,240,209,0.25);
+}
+
+/* Light mode glass */
+html.light .glass,
+html.light .glass-card,
+html.light .dashboard-card {
+  background: rgba(255,255,255,0.75);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(148,163,184,0.2);
+  box-shadow: 0 8px 32px rgba(15,23,42,0.06), 0 1px 2px rgba(15,23,42,0.04);
+  color: #0f172a;
+}
+
+html.light .dashboard-card:hover,
+html.light .glass:hover {
+  border-color: rgba(87,200,245,0.3);
+  box-shadow: 0 15px 40px rgba(87,200,245,0.12);
+}
+
+/* =========================
+   BUTTONS
+========================= */
+
+.btn-primary {
+  @apply px-5 py-3 rounded-2xl font-medium;
+  background: linear-gradient(135deg, #57c8f5, #58f0d1);
+  color: #000;
+  transition: 0.25s ease;
+}
+
+.btn-primary:hover { transform: translateY(-2px); }
+
+.btn-secondary {
+  @apply px-5 py-3 rounded-2xl;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: var(--text-primary);
+}
+
+html.light .btn-secondary {
+  background: rgba(255,255,255,0.8);
+  border: 1px solid rgba(148,163,184,0.25);
+  color: #0f172a;
+}
+
+/* =========================
+   INPUTS
+========================= */
+
+.input-modern {
+  @apply w-full px-4 py-3 rounded-2xl;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: white;
+  transition: border-color 0.2s ease, background 0.3s ease;
+}
+
+.input-modern:focus {
+  outline: none;
+  border-color: rgba(88,240,209,0.4);
+}
+
+html.light .input-modern {
+  background: rgba(255,255,255,0.9);
+  border: 1px solid rgba(148,163,184,0.3);
+  color: #0f172a;
+}
+
+html.light .input-modern::placeholder { color: #94a3b8; }
+
+/* =========================
+   TEXT COLORS IN LIGHT MODE
+========================= */
+
+html.light .text-white { color: #0f172a !important; }
+html.light .text-slate-400 { color: #64748b !important; }
+html.light .text-slate-500 { color: #64748b !important; }
+html.light .text-gray-400 { color: #64748b !important; }
+html.light .text-slate-300 { color: #475569 !important; }
+html.light h1, html.light h2, html.light h3, html.light h4 { color: #0f172a; }
+html.light p { color: #334155; }
+
+/* =========================
+   BACKGROUNDS IN LIGHT MODE
+========================= */
+
+html.light .bg-black\/40,
+html.light .bg-black\/30,
+html.light .bg-black\/20,
+html.light .bg-black\/10 {
+  background: rgba(0,0,0,0.04) !important;
+}
+
+html.light .bg-white\/\[0\.03\],
+html.light .bg-white\/\[0\.04\] {
+  background: rgba(255,255,255,0.8) !important;
+}
+
+html.light .bg-slate-950 { background: #f1f5f9 !important; }
+html.light .bg-slate-900 { background: #f8fafc !important; }
+html.light .bg-slate-800 { background: #e2e8f0 !important; }
+
+/* =========================
+   BORDERS IN LIGHT MODE
+========================= */
+
+html.light .border-white\/10,
+html.light .border-white\/\[0\.1\],
+html.light .border-white\/5,
+html.light .border-white\/\[0\.05\] {
+  border-color: rgba(148,163,184,0.2) !important;
+}
+
+html.light .border-white\/20 {
+  border-color: rgba(148,163,184,0.3) !important;
+}
+
+/* =========================
+   NAVBAR IN LIGHT MODE
+========================= */
+
+html.light nav {
+  background: rgba(255,255,255,0.8) !important;
+  border-bottom: 1px solid rgba(148,163,184,0.2) !important;
+  color: #0f172a !important;
+}
+
+html.light nav a { color: #0f172a !important; }
+html.light nav a:hover { color: #0891b2 !important; }
+html.light nav .text-emerald-400 { color: #059669 !important; }
+
+/* =========================
+   SIDEBAR IN LIGHT MODE
+========================= */
+
+html.light .sidebar,
+html.light [class*="sidebar"] {
+  background: rgba(255,255,255,0.85) !important;
+  border-right: 1px solid rgba(148,163,184,0.2) !important;
+}
+
+/* =========================
+   FORM INPUTS IN LIGHT MODE
+========================= */
+
+html.light input:not([type="submit"]):not([type="button"]),
+html.light select,
+html.light textarea {
+  background: rgba(255,255,255,0.9) !important;
+  color: #0f172a !important;
+  border-color: rgba(148,163,184,0.3) !important;
+}
+
+html.light input::placeholder,
+html.light textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+html.light input:focus,
+html.light select:focus,
+html.light textarea:focus {
+  border-color: #0891b2 !important;
+  outline: none;
+}
+
+/* =========================
+   MODAL IN LIGHT MODE
+========================= */
+
+html.light .fixed.inset-0 > div,
+html.light [class*="modal"] {
+  background: rgba(255,255,255,0.95) !important;
+  border-color: rgba(148,163,184,0.2) !important;
+  color: #0f172a !important;
+}
+
+/* =========================
+   SPECIFIC COMPONENT FIXES
+========================= */
+
+/* Group cards member avatars */
+html.light .border-slate-900 { border-color: #e2e8f0 !important; }
+
+/* Balance list */
+html.light .bg-black\/30 { background: rgba(0,0,0,0.04) !important; }
+
+/* Chat bubbles */
+html.light .bg-slate-700 { background: #e2e8f0 !important; color: #0f172a !important; }
+
+/* Notification dropdown */
+html.light [style*="rgba(2,6,23"] {
+  background: rgba(255,255,255,0.97) !important;
+  color: #0f172a !important;
+  border-color: rgba(148,163,184,0.2) !important;
+}
+
+/* Search suggestions */
+html.light .bg-slate-900 { background: #f8fafc !important; }
+html.light .bg-slate-950 { background: #f1f5f9 !important; }
+
+/* Recharts tooltip */
+html.light .recharts-tooltip-wrapper .recharts-default-tooltip {
+  background: #fff !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+/* Activity feed */
+html.light .text-slate-200 { color: #1e293b !important; }
+
+/* =========================
+   ANIMATIONS
+========================= */
+
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
-.fade-up {
-  animation: fadeUp 0.5s ease forwards;
+
+.fade-up { animation: fadeUp 0.5s ease forwards; }
+
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 0 rgba(88,240,209,0.2); }
+  50% { box-shadow: 0 0 25px rgba(88,240,209,0.25); }
+  100% { box-shadow: 0 0 0 rgba(88,240,209,0.2); }
 }
+
+.glow { animation: pulseGlow 3s infinite; }

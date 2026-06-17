@@ -48,88 +48,315 @@ const CreateGroupModal = ({ onClose, onCreate }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-[#020617] w-full max-w-md rounded-2xl p-6 space-y-5 text-white">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
 
-        <h2 className="text-xl font-bold">Create Group</h2>
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-black/70 backdrop-blur-md"
+        onClick={onClose}
+      />
 
-        {/* Group name */}
-        <input
-          className="w-full p-3 rounded-xl bg-black/40 outline-none border border-white/10 focus:border-emerald-400"
-          placeholder="Group name"
-          value={groupName}
-          onChange={(e) => setGroupName(e.target.value)}
-        />
+      {/* Modal */}
+      <div
+        className="
+        relative
+        w-full
+        max-w-xl
+        rounded-[32px]
+        border
+        border-white/10
+        bg-[#081110]
+        shadow-[0_0_60px_rgba(34,211,238,0.08)]
+        overflow-hidden
+      "
+      >
 
-        {/* Search members */}
-        <div>
-          <p className="text-sm text-gray-400 mb-2">Add Members</p>
-          <div className="relative">
-            <input
-              className="w-full p-3 rounded-xl bg-black/40 outline-none border border-white/10 focus:border-emerald-400"
-              placeholder="Search by name or email..."
-              value={searchQuery}
-              onChange={(e) => handleSearch(e.target.value)}
-            />
-            {searching && (
-              <p className="text-xs text-gray-400 mt-1 px-1">Searching...</p>
-            )}
-            {searchResults.length > 0 && (
-              <div className="absolute z-10 w-full mt-1 bg-slate-900 border border-white/10 rounded-xl overflow-hidden shadow-xl">
-                {searchResults.map((u) => (
-                  <button
-                    key={u._id}
-                    onClick={() => addMember(u)}
-                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition text-left"
-                  >
-                    <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-black font-bold text-sm shrink-0">
-                      {u.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">{u.name}</p>
-                      <p className="text-xs text-gray-400">{u.email}</p>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+        {/* Header */}
+        <div
+          className="
+          px-8
+          py-6
+          border-b
+          border-white/5
+        "
+        >
+          <h2 className="text-2xl font-bold text-white">
+            Create New Group
+          </h2>
+
+          <p className="text-slate-400 text-sm mt-1">
+            Create a group and invite members to start tracking expenses.
+          </p>
         </div>
 
-        {/* Added members */}
-        {members.length > 0 && (
-          <div className="space-y-2">
-            <p className="text-sm text-gray-400">Added ({members.length})</p>
-            {members.map((m) => (
-              <div key={m._id} className="flex justify-between items-center bg-white/5 px-4 py-2 rounded-xl">
-                <div className="flex items-center gap-3">
-                  <div className="w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center text-black font-bold text-xs">
-                    {m.name.charAt(0).toUpperCase()}
-                  </div>
-                  <div>
-                    <p className="text-sm">{m.name}</p>
-                    <p className="text-xs text-gray-400">{m.email}</p>
-                  </div>
-                </div>
-                <button onClick={() => removeMember(m._id)} className="text-red-400 text-lg leading-none">✕</button>
-              </div>
-            ))}
-          </div>
-        )}
+        {/* Content */}
+        <div className="p-8 space-y-6">
 
-        {/* Actions */}
-        <div className="flex justify-end gap-3 pt-2">
-          <button onClick={onClose} className="text-gray-400 px-4 py-2">Cancel</button>
+          {/* Group Name */}
+          <div>
+            <label className="block text-sm text-slate-400 mb-2">
+              Group Name
+            </label>
+
+            <input
+              value={groupName}
+              onChange={(e) => setGroupName(e.target.value)}
+              placeholder="Trip to Goa"
+              className="
+              w-full
+              h-12
+              rounded-2xl
+              border
+              border-white/10
+              bg-white/[0.04]
+              px-4
+              text-white
+              outline-none
+              focus:border-cyan-400/40
+            "
+            />
+          </div>
+
+          {/* Search Members */}
+          <div>
+            <label className="block text-sm text-slate-400 mb-2">
+              Add Members
+            </label>
+
+            <div className="relative">
+
+              <input
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+                placeholder="Search by name or email..."
+                className="
+                w-full
+                h-12
+                rounded-2xl
+                border
+                border-white/10
+                bg-white/[0.04]
+                px-4
+                text-white
+                outline-none
+                focus:border-cyan-400/40
+              "
+              />
+
+              {searching && (
+                <p className="text-xs text-slate-500 mt-2">
+                  Searching...
+                </p>
+              )}
+
+              {searchResults.length > 0 && (
+                <div
+                  className="
+                  absolute
+                  top-14
+                  w-full
+                  rounded-2xl
+                  border
+                  border-white/10
+                  bg-slate-950
+                  overflow-hidden
+                  shadow-2xl
+                  z-20
+                "
+                >
+                  {searchResults.map((u) => (
+                    <button
+                      key={u._id}
+                      onClick={() => addMember(u)}
+                      className="
+                      w-full
+                      flex
+                      items-center
+                      gap-3
+                      px-4
+                      py-3
+                      hover:bg-white/5
+                      transition
+                      text-left
+                    "
+                    >
+                      <div
+                        className="
+                        h-10
+                        w-10
+                        rounded-full
+                        bg-gradient-to-r
+                        from-cyan-400
+                        to-emerald-400
+                        text-black
+                        font-bold
+                        flex
+                        items-center
+                        justify-center
+                      "
+                      >
+                        {u.name?.charAt(0)?.toUpperCase()}
+                      </div>
+
+                      <div>
+                        <p className="text-white text-sm">
+                          {u.name}
+                        </p>
+
+                        <p className="text-xs text-slate-500">
+                          {u.email}
+                        </p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+            </div>
+          </div>
+
+          {/* Members */}
+          {members.length > 0 && (
+            <div>
+
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-sm text-slate-400">
+                  Members
+                </h4>
+
+                <span
+                  className="
+                  px-3
+                  py-1
+                  rounded-full
+                  bg-cyan-400/10
+                  text-cyan-400
+                  text-xs
+                "
+                >
+                  {members.length}
+                </span>
+              </div>
+
+              <div className="space-y-3 max-h-56 overflow-auto">
+
+                {members.map((m) => (
+                  <div
+                    key={m._id}
+                    className="
+                    flex
+                    items-center
+                    justify-between
+                    rounded-2xl
+                    border
+                    border-white/5
+                    bg-white/[0.03]
+                    px-4
+                    py-3
+                  "
+                  >
+                    <div className="flex items-center gap-3">
+
+                      <div
+                        className="
+                        h-10
+                        w-10
+                        rounded-full
+                        bg-gradient-to-r
+                        from-cyan-400
+                        to-emerald-400
+                        text-black
+                        font-bold
+                        flex
+                        items-center
+                        justify-center
+                      "
+                      >
+                        {m.name?.charAt(0)?.toUpperCase()}
+                      </div>
+
+                      <div>
+                        <p className="text-white text-sm">
+                          {m.name}
+                        </p>
+
+                        <p className="text-xs text-slate-500">
+                          {m.email}
+                        </p>
+                      </div>
+
+                    </div>
+
+                    <button
+                      onClick={() => removeMember(m._id)}
+                      className="
+                      text-red-400
+                      hover:text-red-300
+                      text-lg
+                    "
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+
+              </div>
+
+            </div>
+          )}
+
+        </div>
+
+        {/* Footer */}
+        <div
+          className="
+          px-8
+          py-6
+          border-t
+          border-white/5
+          flex
+          justify-end
+          gap-3
+        "
+        >
+
+          <button
+            onClick={onClose}
+            className="
+            px-5
+            py-3
+            rounded-2xl
+            border
+            border-white/10
+            text-slate-300
+            hover:bg-white/5
+          "
+          >
+            Cancel
+          </button>
+
           <button
             onClick={handleCreate}
             disabled={!groupName.trim()}
-            className="bg-cyan-400 px-5 py-2 rounded-xl text-black font-medium disabled:opacity-50"
+            className="
+            px-6
+            py-3
+            rounded-2xl
+            bg-gradient-to-r
+            from-cyan-400
+            to-emerald-400
+            text-black
+            font-semibold
+            disabled:opacity-50
+          "
           >
-            Create
+            Create Group
           </button>
+
         </div>
 
       </div>
+
     </div>
   );
 };

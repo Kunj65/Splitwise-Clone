@@ -4,8 +4,13 @@ import useAuth from "../auth/useAuth";
 
 const SettleUp = ({ group, expenses }) => {
   const { user } = useAuth();
+
   const [settlements, setSettlements] = useState([]);
   const [settling, setSettling] = useState(null);
+
+  const currentUserId = (
+    user?.id || user?._id
+  )?.toString();
 
   useEffect(() => {
     loadSettlements();
@@ -13,75 +18,194 @@ const SettleUp = ({ group, expenses }) => {
 
   const loadSettlements = async () => {
     try {
-      const data = await fetchJsonWithAuth(`/api/settlements/${group.id || group._id}`);
-      setSettlements(data.settlements || []);
-    } catch (err) {
-      console.error("Failed to load settlements:", err);
+      const data = await fetchJsonWithAuth(
+        `/api/settlements/${group.id || group._id}`
+      );
+
+      setSettlements(
+        data.settlements || []
+      );
+    } catch {
+      console.error(
+        "Failed to load settlements"
+      );
     }
   };
 
-  // Calculate who owes who
+  const members =
+    group.members || [];
+
   const balances = {};
-  const members = group.members || [];
 
   members.forEach((m) => {
-    const id = m._id?.toString() || m;
-    balances[id] = { name: m.name || m, amount: 0 };
+    const id = (
+      m._id || m
+    )?.toString();
+
+    const name =
+      typeof m === "object"
+        ? id === currentUserId
+          ? `${m.name} (You)`
+          : m.name
+        : m;
+
+    balances[id] = {
+      name,
+      amount: 0,
+      id,
+    };
   });
 
   expenses.forEach((expense) => {
-    const payerId = expense.paidBy?._id?.toString() || expense.paidBy?.toString();
-    const split = expense.splitBetween || [];
-    const share = Number(expense.amount) / (split.length || members.length);
+    const payerId = (
+      expense.paidBy?._id ||
+      expense.paidBy
+    )?.toString();
 
-    if (balances[payerId]) balances[payerId].amount += Number(expense.amount);
+    const split =
+      expense.splitBetween || [];
 
-    const splitList = split.length > 0 ? split : members;
+    const splitList =
+      split.length > 0
+        ? split
+        : members;
+
+    const share =
+      Number(expense.amount) /
+      splitList.length;
+
+    if (balances[payerId]) {
+      balances[payerId].amount +=
+        Number(expense.amount);
+    }
+
     splitList.forEach((m) => {
-      const id = m._id?.toString() || m.toString();
-      if (balances[id]) balances[id].amount -= share;
+      const id = (
+        m?._id || m
+      )?.toString();
+
+      if (balances[id]) {
+        balances[id].amount -= share;
+      }
     });
   });
 
-  // Add settlements
   settlements.forEach((s) => {
-    const fromId = s.paidBy?._id?.toString();
-    const toId = s.paidTo?._id?.toString();
-    if (balances[fromId]) balances[fromId].amount += Number(s.amount);
-    if (balances[toId]) balances[toId].amount -= Number(s.amount);
+    const fromId = (
+      s.paidBy?._id ||
+      s.paidBy
+    )?.toString();
+
+    const toId = (
+      s.paidTo?._id ||
+      s.paidTo
+    )?.toString();
+
+    if (balances[fromId]) {
+      balances[fromId].amount +=
+        Number(s.amount);
+    }
+
+    if (balances[toId]) {
+      balances[toId].amount -=
+        Number(s.amount);
+    }
   });
 
-  // Calculate simplified debts
+  const bals =
+    Object.values(balances);
+
+  const creditors = bals
+    .filter((b) => b.amount > 0.01)
+    .sort(
+      (a, b) =>
+        b.amount - a.amount
+    )
+    .map((x) => ({ ...x }));
+
+  const debtors = bals
+    .filter((b) => b.amount < -0.01)
+    .sort(
+      (a, b) =>
+        a.amount - b.amount
+    )
+    .map((x) => ({ ...x }));
+
   const debts = [];
-  const bals = Object.entries(balances).map(([id, data]) => ({ id, ...data }));
-  const creditors = bals.filter((b) => b.amount > 0.01).sort((a, b) => b.amount - a.amount);
-  const debtors = bals.filter((b) => b.amount < -0.01).sort((a, b) => a.amount - b.amount);
 
-  let i = 0, j = 0;
-  const c = creditors.map((x) => ({ ...x }));
-  const d = debtors.map((x) => ({ ...x }));
+  let i = 0;
+  let j = 0;
 
-  while (i < c.length && j < d.length) {
-    const amount = Math.min(c[i].amount, -d[j].amount);
-    debts.push({ from: d[j], to: c[i], amount: Math.round(amount * 100) / 100 });
-    c[i].amount -= amount;
-    d[j].amount += amount;
-    if (c[i].amount < 0.01) i++;
-    if (d[j].amount > -0.01) j++;
+  while (
+    i < creditors.length &&
+    j < debtors.length
+  ) {
+    if (
+      creditors[i].id !==
+      debtors[j].id
+    ) {
+      const amount = Math.min(
+        creditors[i].amount,
+        -debtors[j].amount
+      );
+
+      debts.push({
+        from: debtors[j],
+        to: creditors[i],
+        amount:
+          Math.round(
+            amount * 100
+          ) / 100,
+      });
+
+      creditors[i].amount -=
+        amount;
+
+      debtors[j].amount +=
+        amount;
+    }
+
+    if (
+      creditors[i].amount <
+      0.01
+    )
+      i++;
+
+    if (
+      debtors[j].amount >
+      -0.01
+    )
+      j++;
   }
 
-  const currentUserId = user?.id || user?._id;
-
-  const handleSettle = async (debt) => {
+  const handleSettle = async (
+    debt
+  ) => {
     setSettling(debt.to.id);
+
     try {
-      const data = await fetchJsonWithAuth(`/api/settlements/${group.id || group._id}`, {
-        method: "POST",
-        body: { paidToId: debt.to.id, amount: debt.amount },
-      });
-      setSettlements((prev) => [...prev, data.settlement]);
-    } catch (err) {
-      alert("Failed to record settlement");
+      const data =
+        await fetchJsonWithAuth(
+          `/api/settlements/${group.id || group._id}`,
+          {
+            method: "POST",
+            body: {
+              paidToId:
+                debt.to.id,
+              amount:
+                debt.amount,
+            },
+          }
+        );
+
+      setSettlements((prev) => [
+        ...prev,
+        data.settlement,
+      ]);
+    } catch {
+      alert(
+        "Failed to record settlement"
+      );
     } finally {
       setSettling(null);
     }
@@ -89,38 +213,218 @@ const SettleUp = ({ group, expenses }) => {
 
   if (debts.length === 0) {
     return (
-      <div className="glass rounded-3xl p-6">
-        <h3 className="text-xl font-semibold mb-2">Settle Up</h3>
-        <p className="text-emerald-400 text-sm">✅ All settled up! No pending payments.</p>
+      <div
+        className="
+          glass
+          rounded-[32px]
+          p-8
+          border
+          border-white/10
+          text-center
+        "
+      >
+        <div
+          className="
+            h-20
+            w-20
+            mx-auto
+            rounded-full
+            bg-emerald-400/10
+            flex
+            items-center
+            justify-center
+            text-4xl
+          "
+        >
+          ✅
+        </div>
+
+        <h3 className="text-2xl font-bold mt-5">
+          All Settled Up
+        </h3>
+
+        <p className="text-slate-400 mt-2">
+          There are no pending
+          payments in this group.
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="glass rounded-3xl p-6">
-      <h3 className="text-xl font-semibold mb-4">Settle Up</h3>
-      <div className="space-y-3">
-        {debts.map((debt, i) => (
-          <div key={i} className="flex items-center justify-between bg-black/30 rounded-xl p-4">
-            <div>
-              <p className="text-sm">
-                <span className="text-red-400 font-medium">{debt.from.name}</span>
-                <span className="text-slate-400 mx-2">owes</span>
-                <span className="text-emerald-400 font-medium">{debt.to.name}</span>
-              </p>
-              <p className="text-lg font-bold mt-1">₹{debt.amount.toFixed(2)}</p>
-            </div>
-            {debt.from.id === currentUserId && (
-              <button
-                onClick={() => handleSettle(debt)}
-                disabled={settling === debt.to.id}
-                className="bg-emerald-400 text-black px-4 py-2 rounded-xl text-sm font-semibold hover:bg-emerald-300 transition disabled:opacity-50"
+    <div
+      className="
+        glass
+        rounded-[32px]
+        p-8
+        border
+        border-white/10
+      "
+    >
+      <div className="mb-6">
+        <h3 className="text-2xl font-bold">
+          Settlement Suggestions
+        </h3>
+
+        <p className="text-slate-400 text-sm mt-1">
+          Simplified payment
+          recommendations
+        </p>
+      </div>
+
+      <div className="space-y-4">
+        {debts.map(
+          (debt, idx) => {
+            const isMe =
+              debt.from.id ===
+              currentUserId;
+
+            return (
+              <div
+                key={idx}
+                className="
+                  rounded-3xl
+                  bg-white/[0.03]
+                  border
+                  border-white/5
+                  p-5
+                  hover:border-cyan-400/20
+                  transition-all
+                "
               >
-                {settling === debt.to.id ? "Settling..." : "Mark Settled"}
-              </button>
-            )}
-          </div>
-        ))}
+                <div
+                  className="
+                    flex
+                    flex-col
+                    lg:flex-row
+                    lg:items-center
+                    lg:justify-between
+                    gap-5
+                  "
+                >
+                  <div className="flex items-center gap-4">
+
+                    <div className="flex items-center gap-3">
+
+                      <div
+                        className="
+                          h-12
+                          w-12
+                          rounded-full
+                          bg-red-400/20
+                          text-red-400
+                          flex
+                          items-center
+                          justify-center
+                          font-bold
+                        "
+                      >
+                        {debt.from.name?.charAt(
+                          0
+                        )}
+                      </div>
+
+                      <div>
+                        <p className="text-sm text-slate-500">
+                          Pays
+                        </p>
+
+                        <p className="font-medium">
+                          {debt.from.name}
+                        </p>
+                      </div>
+
+                    </div>
+
+                    <div className="text-slate-500 text-xl">
+                      →
+                    </div>
+
+                    <div className="flex items-center gap-3">
+
+                      <div
+                        className="
+                          h-12
+                          w-12
+                          rounded-full
+                          bg-emerald-400/20
+                          text-emerald-400
+                          flex
+                          items-center
+                          justify-center
+                          font-bold
+                        "
+                      >
+                        {debt.to.name?.charAt(
+                          0
+                        )}
+                      </div>
+
+                      <div>
+                        <p className="text-sm text-slate-500">
+                          Receives
+                        </p>
+
+                        <p className="font-medium">
+                          {debt.to.name}
+                        </p>
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                  <div className="flex items-center gap-4">
+
+                    <div className="text-right">
+                      <p className="text-xs text-slate-500">
+                        Amount
+                      </p>
+
+                      <p className="text-2xl font-bold text-emerald-400">
+                        ₹
+                        {debt.amount.toFixed(
+                          2
+                        )}
+                      </p>
+                    </div>
+
+                    {isMe && (
+                      <button
+                        onClick={() =>
+                          handleSettle(
+                            debt
+                          )
+                        }
+                        disabled={
+                          !!settling
+                        }
+                        className="
+                          px-5
+                          py-3
+                          rounded-2xl
+                          bg-gradient-to-r
+                          from-cyan-400
+                          to-emerald-400
+                          text-black
+                          font-semibold
+                          transition-all
+                          hover:scale-[1.02]
+                          disabled:opacity-50
+                        "
+                      >
+                        {settling
+                          ? "Settling..."
+                          : "Mark Settled"}
+                      </button>
+                    )}
+
+                  </div>
+                </div>
+              </div>
+            );
+          }
+        )}
       </div>
     </div>
   );

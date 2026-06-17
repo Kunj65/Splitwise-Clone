@@ -48,6 +48,7 @@ const RecurringExpenses = ({ groupId }) => {
   return (
     <div className="space-y-4">
 
+      {/* ADD FORM */}
       <div className="glass rounded-3xl p-6">
         <h3 className="text-xl font-semibold mb-4">Add Recurring Expense</h3>
         <form onSubmit={handleAdd} className="space-y-3">
@@ -85,6 +86,7 @@ const RecurringExpenses = ({ groupId }) => {
         </form>
       </div>
 
+      {/* LIST */}
       <div className="glass rounded-3xl p-6">
         <h3 className="text-xl font-semibold mb-4">Active Recurring Expenses</h3>
         {recurring.length === 0 && (

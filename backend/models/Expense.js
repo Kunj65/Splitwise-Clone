@@ -8,6 +8,11 @@ const expenseSchema = new mongoose.Schema(
     paidBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     splitBetween: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     receiptUrl: { type: String, default: null },
+    category: {
+      type: String,
+      enum: ["food", "travel", "rent", "utilities", "entertainment", "shopping", "health", "other"],
+      default: "other"
+    },
   },
   { timestamps: true }
 );
