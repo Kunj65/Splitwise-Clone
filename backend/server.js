@@ -22,6 +22,7 @@ import friendRoutes from "./routes/friends.js";
 dotenv.config();
 
 const app = express();
+app.set("trust proxy", 1); // ← add this line
 const httpServer = createServer(app);
 
 // Socket.io
