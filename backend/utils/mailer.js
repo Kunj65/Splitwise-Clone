@@ -9,7 +9,7 @@ const client = new BrevoClient({
 export const sendMail = async ({ to, subject, html }) => {
   try {
     await client.transactionalEmails.sendTransacEmail({
-      sender: { name: "Splitwise App", email: process.env.BREVO_USER },
+      sender: { name: "Splitwise App", email: process.env.BREVO_SENDER },
       to: [{ email: to }],
       subject,
       htmlContent: html,
