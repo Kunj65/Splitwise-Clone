@@ -1,13 +1,12 @@
-// Brevo SMTP
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 dotenv.config();
-console.log("SMTP Host:", "smtp-relay.brevo.com", "User:", process.env.BREVO_USER ? "SET" : "NOT SET");
 
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 587,
   secure: false,
+  family: 4, // ← force IPv4
   auth: {
     user: process.env.GMAIL_USER,
     pass: process.env.GMAIL_PASS,
