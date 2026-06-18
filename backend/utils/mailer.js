@@ -1,26 +1,21 @@
-import nodemailer from "nodemailer";
+import * as Brevo from "@getbrevo/brevo";
 import dotenv from "dotenv";
 dotenv.config();
 
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
-  family: 4, // ← force IPv4
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_PASS,
-  },
-});
+const apiInstance = new Brevo.TransactionalEmailsApi();
+apiInstance.setApiKey(
+  Brevo.TransactionalEmailsApiApiKeys.apiKey,
+  process.env.BREVO_API_KEY
+);
 
 export const sendMail = async ({ to, subject, html }) => {
   try {
-    await transporter.sendMail({
-      from: `"Splitwise App" <${process.env.GMAIL_USER}>`,
-      to,
-      subject,
-      html,
-    });
+    const email = new Brevo.SendSmtpEmail();
+    email.subject = subject;
+    email.htmlContent = html;
+    email.sender = { name: "Splitwise App", email: process.env.BREVO_USER };
+    email.to = [{ email: to }];
+    await apiInstance.sendTransacEmail(email);
     console.log(`Email sent to ${to}`);
   } catch (err) {
     console.error("Email failed:", err.message);
