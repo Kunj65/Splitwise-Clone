@@ -2,6 +2,7 @@
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 dotenv.config();
+console.log("SMTP Host:", "smtp-relay.brevo.com", "User:", process.env.BREVO_USER ? "SET" : "NOT SET");
 
 const transporter = nodemailer.createTransport({
   host: "smtp-relay.brevo.com",
