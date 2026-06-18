@@ -122,9 +122,10 @@ const Navbar = () => {
   };
 
   const unreadCount = activityCtx?.unreadCount || 0;
-  {unreadCount > 0 && (
-  <span
-    className="
+  {
+    unreadCount > 0 && (
+      <span
+        className="
       absolute
       -top-1
       -right-1
@@ -138,10 +139,11 @@ const Navbar = () => {
       items-center
       justify-center
     "
-  >
-    {unreadCount > 99 ? "99+" : unreadCount}
-  </span>
-)}
+      >
+        {unreadCount > 99 ? "99+" : unreadCount}
+      </span>
+    )
+  }
 
   return (
     <nav
@@ -253,17 +255,22 @@ const Navbar = () => {
             {showNotifications && (
               <div
                 className="
-                  absolute
-                  right-0
-                  top-14
-                  w-[420px]
-                  rounded-3xl
-                  theme-card
-                  border
-                  border-white/10
-                  overflow-hidden
-                  shadow-2xl
-                "
+      absolute
+      right-0
+      top-14
+      w-[420px]
+      rounded-3xl
+
+      z-[9999]
+
+      bg-slate-950
+      border
+      border-slate-800
+
+      overflow-hidden
+
+      shadow-[0_20px_50px_rgba(0,0,0,0.6)]
+    "
               >
                 <div className="p-4 border-b border-white/5">
                   <h3 className="font-semibold">

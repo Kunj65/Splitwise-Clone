@@ -1,4 +1,5 @@
 import AnimatedPage from "../components/AnimatedPage";
+import { useNavigate } from "react-router-dom";
 import useGroups from "../context/useGroups";
 import useAuth from "../auth/useAuth";
 import {
@@ -11,6 +12,7 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
+  Legend,
 } from "recharts";
 
 const CATEGORY_COLORS = {
@@ -38,6 +40,7 @@ const CATEGORY_LABELS = {
 const Summary = () => {
   const { user } = useAuth();
   const data = useGroups();
+  const navigate = useNavigate();
 
   const groups = data?.groups ?? [];
   const expensesByGroup = data?.expensesByGroup ?? {};
@@ -53,7 +56,25 @@ const Summary = () => {
 
   const allExpenses = Object.values(
     expensesByGroup
-  ).flat();
+  )
+    .flat()
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt) -
+        new Date(a.createdAt)
+    );
+
+    const recentExpenses = allExpenses.slice(0, 5);
+
+  const totalSpent = allExpenses.reduce(
+    (sum, expense) => sum + Number(expense.amount),
+    0
+  );
+
+  const averageExpense =
+    allExpenses.length > 0
+      ? totalSpent / allExpenses.length
+      : 0;
 
   allExpenses.forEach((expense) => {
     const amount = Number(expense.amount);
@@ -167,7 +188,27 @@ const Summary = () => {
 
           {/* Main Stats */}
 
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className="grid md:grid-cols-2 xl:grid-cols-5 gap-4">
+
+            <div className="glass rounded-[28px] p-5 border border-white/10">
+              <p className="text-slate-400 text-sm">
+                Total Spending
+              </p>
+
+              <h3 className="text-2xl font-bold mt-2">
+                ₹{totalSpent.toFixed(2)}
+              </h3>
+            </div>
+
+            <div className="glass rounded-[28px] p-5 border border-white/10">
+              <p className="text-slate-400 text-sm">
+                Average Expense
+              </p>
+
+              <h3 className="text-2xl font-bold mt-2">
+                ₹{averageExpense.toFixed(2)}
+              </h3>
+            </div>
 
             <div className="glass rounded-[32px] p-6 border border-white/10">
               <div className="flex justify-between items-center">
@@ -214,11 +255,10 @@ const Summary = () => {
                   </p>
 
                   <h3
-                    className={`text-3xl font-bold mt-2 ${
-                      net >= 0
-                        ? "text-emerald-400"
-                        : "text-red-400"
-                    }`}
+                    className={`text-3xl font-bold mt-2 ${net >= 0
+                      ? "text-emerald-400"
+                      : "text-red-400"
+                      }`}
                   >
                     ₹
                     {net.toFixed(2)}
@@ -267,7 +307,7 @@ const Summary = () => {
 
           {/* Charts */}
 
-          <div className="grid lg:grid-cols-2 gap-6">
+          <div className="grid xl:grid-cols-2 gap-6">
 
             {pieData.length > 0 && (
               <div className="glass rounded-[32px] p-6 border border-white/10">
@@ -278,13 +318,13 @@ const Summary = () => {
 
                 <ResponsiveContainer
                   width="100%"
-                  height={320}
+                  height={280}
                 >
                   <PieChart>
                     <Pie
                       data={pieData}
                       dataKey="value"
-                      outerRadius={110}
+                      outerRadius={90}
                       cx="50%"
                       cy="50%"
                     >
@@ -302,6 +342,7 @@ const Summary = () => {
                         )
                       )}
                     </Pie>
+                    <Legend />
 
                     <Tooltip
                       formatter={(
@@ -341,9 +382,9 @@ const Summary = () => {
                       formatter={(
                         value
                       ) => [
-                        `₹${value}`,
-                        "Total",
-                      ]}
+                          `₹${value}`,
+                          "Total",
+                        ]}
                       contentStyle={{
                         background:
                           "#0f172a",
@@ -371,7 +412,100 @@ const Summary = () => {
             )}
 
           </div>
+          <div className="glass rounded-[32px] p-6 border border-white/10">
 
+            <div className="flex items-center justify-between mb-6">
+
+              <div>
+                <h2 className="text-2xl font-bold">
+                  Recent Expenses
+                </h2>
+
+                <p className="text-slate-400 text-sm">
+                  Latest 5 expenses
+                </p>
+              </div>
+
+              <button
+                onClick={() =>
+                  navigate("/activity?tab=expenses")
+                }
+                className="
+        px-4
+        py-2
+        rounded-xl
+        bg-cyan-500/10
+        border
+        border-cyan-500/20
+        text-cyan-400
+        hover:bg-cyan-500/20
+        transition
+      "
+              >
+                See More →
+              </button>
+
+            </div>
+
+            {recentExpenses.length === 0 ? (
+              <p className="text-slate-400">
+                No expenses found
+              </p>
+            ) : (
+              <div className="space-y-2">
+
+                {recentExpenses.map(
+                  (expense) => (
+                    <div
+                      key={expense._id}
+                      className="
+              flex
+              items-center
+              justify-between
+              rounded-2xl
+              border
+              border-white/10
+              bg-white/[0.02]
+              px-4
+              py-2.5
+            "
+                    >
+                      <div>
+                        <p className="font-medium">
+                          {expense.description}
+                        </p>
+
+                        <span
+                          className="
+    inline-block
+    mt-1
+    px-2
+    py-1
+    rounded-full
+    text-[11px]
+    bg-cyan-500/10
+    text-cyan-400
+  "
+                        >
+                          {expense.category || "Other"}
+                        </span>
+                      </div>
+
+                      <div
+                        className="
+                text-emerald-400
+                font-semibold
+              "
+                      >
+                        ₹{expense.amount}
+                      </div>
+                    </div>
+                  )
+                )}
+
+              </div>
+            )}
+          </div>
         </div>
 
       </div>
