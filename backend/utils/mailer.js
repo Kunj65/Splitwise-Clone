@@ -5,19 +5,19 @@ dotenv.config();
 console.log("SMTP Host:", "smtp-relay.brevo.com", "User:", process.env.BREVO_USER ? "SET" : "NOT SET");
 
 const transporter = nodemailer.createTransport({
-  host: "smtp-relay.brevo.com",
-  port: 465,
+  host: "smtp.gmail.com",
+  port: 587,
   secure: false,
   auth: {
-    user: process.env.BREVO_USER,
-    pass: process.env.BREVO_PASS,
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASS,
   },
 });
 
 export const sendMail = async ({ to, subject, html }) => {
   try {
     await transporter.sendMail({
-      from: `"Splitwise App" <${process.env.BREVO_USER}>`,
+      from: `"Splitwise App" <${process.env.GMAIL_USER}>`,
       to,
       subject,
       html,
