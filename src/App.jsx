@@ -36,59 +36,12 @@ function App() {
 
       {/* Protected Routes */}
       <Route element={<RequireAuth />}>
-        <Route
-          path="/"
-          element={
-            <DashboardLayout>
-              <Home />
-            </DashboardLayout>
-          }
-        />
-
-        <Route
-          path="/group/:groupId"
-          element={
-            <DashboardLayout>
-              <GroupPage />
-            </DashboardLayout>
-          }
-        />
-
-        <Route
-          path="/summary"
-          element={
-            <DashboardLayout>
-              <Summary />
-            </DashboardLayout>
-          }
-        />
-
-        <Route
-          path="/activity"
-          element={
-            <DashboardLayout>
-              <Activity />
-            </DashboardLayout>
-          }
-        />
-
-        <Route
-          path="/profile"
-          element={
-            <DashboardLayout>
-              <Profile />
-            </DashboardLayout>
-          }
-        />
-
-        <Route
-          path="/friends"
-          element={
-            <DashboardLayout>
-              <Friends />
-            </DashboardLayout>
-          }
-        />
+        <Route path="/" element={<DashboardLayout><Home /></DashboardLayout>} />
+        <Route path="/group/:groupId" element={<DashboardLayout><GroupPage /></DashboardLayout>} />
+        <Route path="/summary" element={<DashboardLayout><Summary /></DashboardLayout>} />
+        <Route path="/activity" element={<DashboardLayout><Activity /></DashboardLayout>}/>
+        <Route path="/profile" element={<DashboardLayout><Profile /></DashboardLayout>} />
+        <Route path="/friends" element={<DashboardLayout><Friends /></DashboardLayout>} />
       </Route>
     </Routes>
   );
