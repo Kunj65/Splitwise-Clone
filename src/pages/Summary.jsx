@@ -156,16 +156,6 @@ const Summary = () => {
       CATEGORY_COLORS[key] ||
       "#6b7280",
   }));
-
-  const barData = Object.entries(
-    monthlyTotals
-  )
-    .slice(-6)
-    .map(([month, total]) => ({
-      month,
-      total: Math.round(total),
-    }));
-
   return (
     <AnimatedPage>
       <div className="min-h-screen text-white">
@@ -302,114 +292,6 @@ const Summary = () => {
                 {pieData.length}
               </h3>
             </div>
-
-          </div>
-
-          {/* Charts */}
-
-          <div className="grid xl:grid-cols-2 gap-6">
-
-            {pieData.length > 0 && (
-              <div className="glass rounded-[32px] p-6 border border-white/10">
-
-                <h2 className="text-xl font-bold mb-5">
-                  Spending by Category
-                </h2>
-
-                <ResponsiveContainer
-                  width="100%"
-                  height={280}
-                >
-                  <PieChart>
-                    <Pie
-                      data={pieData}
-                      dataKey="value"
-                      outerRadius={90}
-                      cx="50%"
-                      cy="50%"
-                    >
-                      {pieData.map(
-                        (
-                          entry,
-                          index
-                        ) => (
-                          <Cell
-                            key={index}
-                            fill={
-                              entry.color
-                            }
-                          />
-                        )
-                      )}
-                    </Pie>
-                    <Legend />
-
-                    <Tooltip
-                      formatter={(
-                        value
-                      ) =>
-                        `₹${value}`
-                      }
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-
-              </div>
-            )}
-
-            {barData.length > 0 && (
-              <div className="glass rounded-[32px] p-6 border border-white/10">
-
-                <h2 className="text-xl font-bold mb-5">
-                  Monthly Spending
-                </h2>
-
-                <ResponsiveContainer
-                  width="100%"
-                  height={320}
-                >
-                  <BarChart data={barData}>
-                    <XAxis
-                      dataKey="month"
-                      stroke="#94a3b8"
-                    />
-
-                    <YAxis
-                      stroke="#94a3b8"
-                    />
-
-                    <Tooltip
-                      formatter={(
-                        value
-                      ) => [
-                          `₹${value}`,
-                          "Total",
-                        ]}
-                      contentStyle={{
-                        background:
-                          "#0f172a",
-                        border:
-                          "1px solid #334155",
-                        borderRadius:
-                          "12px",
-                      }}
-                    />
-
-                    <Bar
-                      dataKey="total"
-                      fill="#10b981"
-                      radius={[
-                        8,
-                        8,
-                        0,
-                        0,
-                      ]}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-
-              </div>
-            )}
 
           </div>
           <div className="glass rounded-[32px] p-6 border border-white/10">

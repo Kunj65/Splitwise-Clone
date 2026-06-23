@@ -9,7 +9,21 @@ import RecurringExpenses from "../components/RecurringExpenses";
 import useGroups from "../context/useGroups";
 import { Search, ChevronLeft, ChevronRight, X } from "lucide-react";
 
-// Category colors (for visual tags if present)
+// ✅ Category mapping - ALL LOWERCASE
+const CATEGORY_ICONS = {
+  food: "🍔",
+  travel: "✈️",
+  rent: "🏠",
+  utilities: "💡",
+  entertainment: "🎬",
+  shopping: "🛍️",
+  health: "💊",
+  education: "📚",
+  transportation: "🚗",
+  insurance: "🛡️",
+  other: "📦",
+};
+
 const CATEGORY_COLORS = {
   food: "#10b981",
   travel: "#3b82f6",
@@ -22,6 +36,20 @@ const CATEGORY_COLORS = {
   transportation: "#8b5cf6",
   insurance: "#d946ef",
   other: "#6b7280",
+};
+
+const CATEGORY_LABELS = {
+  food: "Food",
+  travel: "Travel",
+  rent: "Rent",
+  utilities: "Utilities",
+  entertainment: "Entertainment",
+  shopping: "Shopping",
+  health: "Health",
+  education: "Education",
+  transportation: "Transportation",
+  insurance: "Insurance",
+  other: "Other",
 };
 
 const GroupPage = () => {
@@ -37,11 +65,11 @@ const GroupPage = () => {
     settleGroup,
   } = useGroups();
 
-  const group = groups.find(
-    (g) => g.id === groupId || g._id === groupId
-  );
-
+  const group = groups.find((g) => g.id === groupId || g._id === groupId);
   const expenses = expensesByGroup[groupId] || [];
+
+  // ✅ Debug - log expenses to see structure
+  console.log("📊 Current expenses:", expenses);
 
   const [editing, setEditing] = useState(false);
   const [activeTab, setActiveTab] = useState("expenses");
@@ -79,9 +107,18 @@ const GroupPage = () => {
     return filteredExpenses.slice(startIndex, startIndex + itemsPerPage);
   }, [filteredExpenses, safeCurrentPage]);
 
+  // ✅ FIX: Safely calculate total expense amount
+  const totalExpenseAmount = useMemo(() => {
+    if (!expenses || !Array.isArray(expenses)) return 0;
+    return expenses.reduce(
+      (sum, expense) => sum + Number(expense?.amount || 0),
+      0
+    );
+  }, [expenses]);
+
   const handleSearch = (query) => {
     setSearchQuery(query);
-    setCurrentPage(1); // reset to first page on search
+    setCurrentPage(1);
   };
 
   const clearSearch = () => {
@@ -109,21 +146,30 @@ const GroupPage = () => {
   const handleAddExpense = async (expense) => {
     if (group.settled) return;
     try {
+      console.log("📤 Adding expense with category:", expense.category);
+      
       await addExpense(groupId, {
         description: expense.description || "",
         amount: expense.amount,
         paidById: expense.paidById,
         splitBetweenIds: expense.splitBetweenIds,
+        category: expense.category || "other",
+        receiptUrl: expense.receiptUrl || null,
       });
     } catch (error) {
       console.error("Failed to add expense:", error);
     }
   };
 
-  const totalExpenseAmount = expenses.reduce(
-    (sum, expense) => sum + Number(expense.amount || 0),
-    0
-  );
+  // Helper function to get category info safely
+  const getCategoryInfo = (category) => {
+    const key = category?.toLowerCase() || "other";
+    return {
+      icon: CATEGORY_ICONS[key] || "📦",
+      color: CATEGORY_COLORS[key] || "#6b7280",
+      label: CATEGORY_LABELS[key] || "Other",
+    };
+  };
 
   return (
     <div className="space-y-8 text-white">
@@ -231,7 +277,7 @@ const GroupPage = () => {
         ))}
       </div>
 
-      {/* Expenses Tab with Search & Pagination */}
+      {/* Expenses Tab */}
       {activeTab === "expenses" && (
         <div className="grid xl:grid-cols-[420px_1fr] gap-6">
           {/* Left: Expense Form */}
@@ -250,7 +296,7 @@ const GroupPage = () => {
             )}
           </div>
 
-          {/* Right: Expense List with Search & Pagination */}
+          {/* Right: Expense List */}
           <div className="glass rounded-[32px] p-6 border border-white/10">
             {/* Search Bar */}
             <div className="relative mb-4">
@@ -293,30 +339,20 @@ const GroupPage = () => {
               <>
                 <div className="space-y-3">
                   {paginatedExpenses.map((expense) => {
-                    const category = expense.category || "other";
-                    const color = CATEGORY_COLORS[category] || "#6b7280";
+                    const categoryInfo = getCategoryInfo(expense.category);
                     const payerName = expense.paidBy?.name || expense.paidBy || "Unknown";
+
                     return (
                       <div
-                        key={expense._id}
+                        key={expense._id || expense.id || Math.random()}
                         className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.02] px-5 py-3 hover:bg-white/[0.05] transition group"
                       >
                         <div className="flex items-center gap-4 flex-1 min-w-0">
                           <div
                             className="w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
-                            style={{ background: `${color}20` }}
+                            style={{ background: `${categoryInfo.color}20` }}
                           >
-                            {category === "food" && "🍔"}
-                            {category === "travel" && "✈️"}
-                            {category === "rent" && "🏠"}
-                            {category === "utilities" && "💡"}
-                            {category === "entertainment" && "🎬"}
-                            {category === "shopping" && "🛍️"}
-                            {category === "health" && "💊"}
-                            {category === "education" && "📚"}
-                            {category === "transportation" && "🚗"}
-                            {category === "insurance" && "🛡️"}
-                            {!["food","travel","rent","utilities","entertainment","shopping","health","education","transportation","insurance"].includes(category) && "📦"}
+                            {categoryInfo.icon}
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="font-medium truncate">{expense.description || "Untitled"}</p>
@@ -324,19 +360,19 @@ const GroupPage = () => {
                               <span className="text-xs text-slate-400">Paid by {payerName}</span>
                               <span
                                 className="text-xs px-2 py-0.5 rounded-full"
-                                style={{ background: `${color}20`, color }}
+                                style={{ background: `${categoryInfo.color}20`, color: categoryInfo.color }}
                               >
-                                {category}
+                                {categoryInfo.label}
                               </span>
                             </div>
                           </div>
                         </div>
                         <div className="text-right flex-shrink-0 ml-4">
                           <p className="font-semibold text-emerald-400">
-                            ₹{Number(expense.amount).toFixed(2)}
+                            ₹{Number(expense.amount || 0).toFixed(2)}
                           </p>
                           <p className="text-xs text-slate-400">
-                            {new Date(expense.createdAt).toLocaleDateString()}
+                            {expense.createdAt ? new Date(expense.createdAt).toLocaleDateString() : "N/A"}
                           </p>
                         </div>
                       </div>
@@ -366,7 +402,6 @@ const GroupPage = () => {
                         <ChevronLeft className="w-4 h-4" />
                       </button>
 
-                      {/* Page numbers (smart pagination) */}
                       <div className="flex items-center gap-1">
                         {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
                           let pageNum;
@@ -379,7 +414,6 @@ const GroupPage = () => {
                           } else {
                             pageNum = safeCurrentPage - 2 + i;
                           }
-                          // Avoid duplicate pages
                           if (i > 0 && pageNum === safeCurrentPage - 2 + i - 1) return null;
                           return (
                             <button
@@ -421,10 +455,8 @@ const GroupPage = () => {
         </div>
       )}
 
-      {/* Other tabs (unchanged) */}
-      {activeTab === "settle" && (
-        <SettleUp group={group} expenses={expenses} />
-      )}
+      {/* Other tabs */}
+      {activeTab === "settle" && <SettleUp group={group} expenses={expenses} />}
       {activeTab === "chat" && <GroupChat groupId={groupId} />}
       {activeTab === "recurring" && <RecurringExpenses groupId={groupId} />}
 

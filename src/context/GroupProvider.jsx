@@ -73,11 +73,8 @@ export const GroupProvider = ({ children }) => {
         ],
       }));
 
-      activityCtx?.addActivity({
-        type: "expense_added",
-        message: `New expense "${expense.description}" of ₹${expense.amount} in your group`,
-      });
-
+      // ✅ Activity is already created in backend, so we don't need to add it here
+      // Just show notification
       sendPushNotification(
         "New Expense Added",
         `${expense.paidBy?.name} added "${expense.description}" ₹${expense.amount}`
@@ -316,69 +313,73 @@ export const GroupProvider = ({ children }) => {
     }
   };
 
-const addExpense = async (groupId, expenseData) => {
-  try {
-    const response = await fetchJsonWithAuth(
-      `/api/groups/${groupId}/expenses`,
-      {
-        method: "POST",
-        body: expenseData,
-      }
-    );
+  // ✅ addExpense function - defined before being used
+  const addExpense = async (groupId, expenseData) => {
+    try {
+      const requestBody = {
+        description: expenseData.description || "",
+        amount: expenseData.amount,
+        paidById: expenseData.paidById,
+        splitBetweenIds: expenseData.splitBetweenIds,
+        category: expenseData.category || "other",
+        receiptUrl: expenseData.receiptUrl || null,
+      };
 
-    setExpensesByGroup((prev) => ({
-      ...prev,
-      [groupId]: [
-        ...(prev[groupId] || []),
-        response.expense,
-      ],
-    }));
+      const response = await fetchJsonWithAuth(
+        `/api/groups/${groupId}/expenses`,
+        {
+          method: "POST",
+          body: requestBody,
+        }
+      );
 
-    const group = groups.find(
-      (g) =>
-        g.id === groupId ||
-        g._id === groupId
-    );
+      setExpensesByGroup((prev) => ({
+        ...prev,
+        [groupId]: [
+          ...(prev[groupId] || []),
+          response.expense,
+        ],
+      }));
 
-    activityCtx?.addActivity({
-      type: "expense_added",
-      message: `Added expense "${expenseData.description}" of ₹${expenseData.amount} in "${group?.name || "a group"}"`,
-    });
+      const group = groups.find(
+        (g) =>
+          g.id === groupId ||
+          g._id === groupId
+      );
 
-    showNotification(
-      "Expense Added",
-      `${expenseData.description} - ₹${expenseData.amount}`
-    );
+      // ✅ REMOVED: activity creation - backend already creates it
+      // This prevents duplicate activities
 
-    return response.expense;
-  } catch (error) {
-    console.error("Failed to add expense:", error);
-    throw error;
-  }
-};
+      showNotification(
+        "Expense Added",
+        `${expenseData.description} - ₹${expenseData.amount}`
+      );
+
+      return response.expense;
+    } catch (error) {
+      console.error("Failed to add expense:", error);
+      throw error;
+    }
+  };
+
   return (
     <GroupContext.Provider
       value={{
         groups,
         friends,
-
         expensesByGroup,
         loading,
-
         searchTerm,
         setSearchTerm,
-
         friendSearch,
         setFriendSearch,
-
         addGroup,
         updateGroup,
         archiveGroup,
         restoreGroup,
         settleGroup,
         deleteGroup,
-        addExpense,
-
+        addExpense, // ✅ addExpense is now defined and exported
         loadFriends,
       }}
     >

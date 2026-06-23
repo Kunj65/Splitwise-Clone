@@ -37,4 +37,4 @@ const ExpenseSearch = ({ expenses, onResults }) => {
   );
 };
 
-export default ExpenseSearch;
+export default ExpenseSearch; 

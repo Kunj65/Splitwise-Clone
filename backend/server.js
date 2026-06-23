@@ -17,6 +17,7 @@ import commentRoutes from "./routes/comments.js";
 import recurringRoutes from "./routes/recurring.js";
 import friendRoutes from "./routes/friends.js";
 import { startCronJobs } from "./corn.js";
+import expenseRoutes from './routes/expenses.js';
 
 dotenv.config();
 
@@ -71,6 +72,8 @@ app.use(cors({
 }));
 
 app.use(express.json());
+
+app.use('/api/groups', expenseRoutes);
 
 // Rate limiting
 const limiter = rateLimit({
