@@ -23,24 +23,16 @@ export const ActivityProvider = ({ children }) => {
     try {
       setLoading(true);
 
-      const response = await fetchJsonWithAuth(
-        "/api/activities"
-      );
+      const response = await fetchJsonWithAuth("/api/activities");
 
-      const mapped = (response.activities || []).map(
-        (activity) => ({
-          ...activity,
-          id: activity._id,
-        })
-      );
+      const mapped = (response || []).map((activity) => ({
+        ...activity,
+        id: activity._id,
+      }));
 
       setActivities(mapped);
     } catch (error) {
-      console.error(
-        "Failed to load activities:",
-        error
-      );
-
+      console.error("Failed to load activities:", error);
       setActivities([]);
     } finally {
       setLoading(false);
@@ -49,13 +41,10 @@ export const ActivityProvider = ({ children }) => {
 
   const addActivity = async (activityData) => {
     try {
-      const response = await fetchJsonWithAuth(
-        "/api/activities",
-        {
-          method: "POST",
-          body: activityData,
-        }
-      );
+      const response = await fetchJsonWithAuth("/api/activities", {
+        method: "POST",
+        body: activityData,
+      });
 
       const newActivity = {
         ...response.activity,
@@ -63,18 +52,11 @@ export const ActivityProvider = ({ children }) => {
         createdAt: response.activity.createdAt,
       };
 
-      setActivities((prev) => [
-        newActivity,
-        ...prev,
-      ]);
+      setActivities((prev) => [newActivity, ...prev]);
 
       return newActivity;
     } catch (error) {
-      console.error(
-        "Failed to add activity:",
-        error
-      );
-
+      console.error("Failed to add activity:", error);
       throw error;
     }
   };
@@ -83,9 +65,7 @@ export const ActivityProvider = ({ children }) => {
     setActivities([]);
   };
 
-  const addNotification = (
-    notificationData
-  ) => {
+  const addNotification = (notificationData) => {
     const notification = {
       id: Date.now().toString(),
       ...notificationData,
@@ -93,10 +73,7 @@ export const ActivityProvider = ({ children }) => {
       createdAt: new Date().toISOString(),
     };
 
-    setNotifications((prev) => [
-      notification,
-      ...prev,
-    ]);
+    setNotifications((prev) => [notification, ...prev]);
 
     return notification;
   };
@@ -123,14 +100,11 @@ export const ActivityProvider = ({ children }) => {
       value={{
         activities,
         notifications,
-
         addActivity,
         clearActivities,
-
         addNotification,
         markAllNotificationsAsRead,
         clearNotifications,
-
         unreadCount,
         loading,
       }}

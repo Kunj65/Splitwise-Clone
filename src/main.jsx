@@ -20,7 +20,6 @@ pingBackend();
 setInterval(pingBackend, 10 * 60 * 1000);
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-  <React.StrictMode>
     <ErrorBoundary>
       <BrowserRouter>
         <AuthProvider>
@@ -38,5 +37,4 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         </AuthProvider>
       </BrowserRouter>
     </ErrorBoundary>
-  </React.StrictMode>
 );

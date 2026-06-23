@@ -75,6 +75,9 @@ const Home = () => {
             to-emerald-400
             text-black
             font-semibold
+            transition-all
+            hover:scale-[1.02]
+            disabled:opacity-50
           "
         >
           + Create Group

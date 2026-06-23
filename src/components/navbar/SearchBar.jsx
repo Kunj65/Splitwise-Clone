@@ -54,7 +54,10 @@ const SearchBar = ({
             from-cyan-400
             to-emerald-400
             text-black
-            font-semibold
+            font-
+            transition-all
+            hover:scale-[1.02]
+            disabled:opacity-50
           "
         >
           Search

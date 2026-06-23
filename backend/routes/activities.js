@@ -1,50 +1,114 @@
 import express from "express";
 import Activity from "../models/Activity.js";
-import { authMiddleware } from "../middleware/auth.js";
 
 const router = express.Router();
 
-router.use(authMiddleware);
-
+// ✅ Get all activities
 router.get("/", async (req, res) => {
   try {
-    const activities = await Activity.find({ user: req.user._id })
-      .sort({ createdAt: -1 })
-      .lean();
-    return res.json({ activities });
+    const activities = await Activity.find()
+      .populate("user", "name email")
+      .populate("group", "name")
+      .sort({ createdAt: -1 });
+    
+    res.json(activities);
   } catch (error) {
-    console.error("Failed to load activities:", error);
-    return res.status(500).json({ message: "Failed to load activities" });
+    console.error("Error fetching activities:", error);
+    res.status(500).json({ error: error.message });
   }
 });
 
+// ✅ Get activities for a specific group
+router.get("/group/:groupId", async (req, res) => {
+  try {
+    const { groupId } = req.params;
+    const activities = await Activity.find({ group: groupId })
+      .populate("user", "name email")
+      .sort({ createdAt: -1 });
+    
+    res.json(activities);
+  } catch (error) {
+    console.error("Error fetching group activities:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ✅ Get activities by category
+router.get("/category/:category", async (req, res) => {
+  try {
+    const { category } = req.params;
+    const activities = await Activity.find({ 
+      category: category.toLowerCase() 
+    })
+      .populate("user", "name email")
+      .populate("group", "name")
+      .sort({ createdAt: -1 });
+    
+    res.json(activities);
+  } catch (error) {
+    console.error("Error fetching activities by category:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ✅ Get activity counts by category
+router.get("/counts", async (req, res) => {
+  try {
+    const counts = await Activity.aggregate([
+      {
+        $group: {
+          _id: "$category",
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { _id: 1 }
+      }
+    ]);
+    
+    const result = {
+      total: await Activity.countDocuments(),
+      categories: counts.reduce((acc, item) => {
+        acc[item._id || "other"] = item.count;
+        return acc;
+      }, {})
+    };
+    
+    res.json(result);
+  } catch (error) {
+    console.error("Error fetching category counts:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ✅ POST - Add a new activity (if needed)
 router.post("/", async (req, res) => {
   try {
-    const { type, message, amount, currency } = req.body; // ✅ FIX: read amount & currency
-    if (!type || !message) {
-      return res.status(400).json({ message: "Type and message are required" });
-    }
-    const activity = await Activity.create({
-      user: req.user._id,
+    const { group, user, type, message, amount, currency, category } = req.body;
+    
+    const activity = new Activity({
+      group,
+      user,
       type,
       message,
-      amount: amount ?? null,     // ✅ FIX: save amount
-      currency: currency ?? null, // ✅ FIX: save currency
+      amount: amount || 0,
+      currency: currency || "INR",
+      category: category || "other",
     });
-    return res.status(201).json({ activity });
+    
+    await activity.save();
+    
+    const populatedActivity = await Activity.findById(activity._id)
+      .populate("user", "name email")
+      .populate("group", "name");
+    
+    res.status(201).json({ 
+      success: true, 
+      activity: populatedActivity 
+    });
   } catch (error) {
-    console.error("Failed to create activity:", error);
-    return res.status(500).json({ message: "Failed to create activity" });
-  }
-});
-
-router.delete("/", async (req, res) => {
-  try {
-    await Activity.deleteMany({ user: req.user._id });
-    return res.json({ message: "Activities cleared" });
-  } catch (error) {
-    console.error("Failed to clear activities:", error);
-    return res.status(500).json({ message: "Failed to clear activities" });
+    console.error("Error creating activity:", error);
+    res.status(500).json({ error: error.message });
   }
 });
 

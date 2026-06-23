@@ -7,31 +7,36 @@ const buildAuthHeaders = () => {
 };
 
 export const fetchJson = async (path, options = {}) => {
-  const { body, headers, ...restOptions } = options;
+  try {
+    const { body, headers, ...restOptions } = options;
 
-  const serializedBody =
-    body !== undefined
-      ? typeof body === "string"
-        ? body
-        : JSON.stringify(body)
-      : undefined;
+    const serializedBody =
+      body !== undefined
+        ? typeof body === "string"
+          ? body
+          : JSON.stringify(body)
+        : undefined;
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...restOptions,
-    headers: {
-      "Content-Type": "application/json",
-      ...headers,
-    },
-    ...(serializedBody !== undefined ? { body: serializedBody } : {}),
-  });
+    const response = await fetch(`${API_BASE_URL}${path}`, {
+      ...restOptions,
+      headers: {
+        "Content-Type": "application/json",
+        ...headers,
+      },
+      ...(serializedBody !== undefined ? { body: serializedBody } : {}),
+    });
 
-  const responseBody = await response.json().catch(() => null);
+    const responseBody = await response.json().catch(() => null);
 
-  if (!response.ok) {
-    throw new Error(responseBody?.message || "Request failed");
+    if (!response.ok) {
+      throw new Error(responseBody?.message || "Request failed");
+    }
+
+    return responseBody;
+  } catch (error) {
+    console.error("❌ Fetch error:", error.message);
+    throw error;
   }
-
-  return responseBody;
 };
 
 export const fetchJsonWithAuth = async (path, options = {}) =>
@@ -43,8 +48,8 @@ export const fetchJsonWithAuth = async (path, options = {}) =>
     },
   });
 
-  // Ping backend on startup to wake Render from sleep
 export const pingBackend = () => {
   fetch(`${API_BASE_URL}/health`).catch(() => {});
 };
+
 export const getAuthHeaders = () => buildAuthHeaders();
