@@ -2,22 +2,17 @@ import useActivity from "../context/useActivity";
 import { useState, useMemo } from "react";
 import { currencySymbols } from "../utils/currencySymbols";
 import { 
+  Search, 
+  X, 
+  Filter, 
+  ChevronDown, 
+  Clock, 
+  Tag, 
   ArrowRight,
-  ChevronDown,
-  Clock,
-  CreditCard,
-  DollarSign,
-  Filter,
-  Mail,
-  MessageSquare,
-  PlusCircle,
-  Search,
-  Tag,
-  Trash2,
-  User,
-  UserPlus,
+  Coins,
   Users,
-  X,
+  Trash2,
+  Mail,
   Zap
 } from "lucide-react";
 
@@ -64,23 +59,6 @@ const CATEGORY_LABELS = {
   other: "Other",
 };
 
-const getActivityIcon = (type) => {
-  const iconProps = { className: "w-6 h-6" };
-  
-  switch (type) {
-    case "expense_added":
-      return <DollarSign {...iconProps} className="w-6 h-6 text-emerald-400" />;
-    case "group_created":
-      return <Users {...iconProps} className="w-6 h-6 text-blue-400" />;
-    case "group_deleted":
-      return <Trash2 {...iconProps} className="w-6 h-6 text-red-400" />;
-    case "group_invite":
-      return <Mail {...iconProps} className="w-6 h-6 text-purple-400" />;
-    default:
-      return <Zap {...iconProps} className="w-6 h-6 text-yellow-400" />;
-  }
-};
-
 const getCategoryInfo = (category) => {
   const key = category?.toLowerCase() || "other";
   return {
@@ -90,8 +68,26 @@ const getCategoryInfo = (category) => {
   };
 };
 
+// ✅ Professional Icons
+const getActivityIcon = (type, className = "w-5 h-5") => {
+  const iconProps = { className };
+  
+  switch (type) {
+    case "expense_added":
+      return <Coins {...iconProps} className={`${className} text-emerald-400`} />;
+    case "group_created":
+      return <Users {...iconProps} className={`${className} text-blue-400`} />;
+    case "group_deleted":
+      return <Trash2 {...iconProps} className={`${className} text-red-400`} />;
+    case "group_invite":
+      return <Mail {...iconProps} className={`${className} text-purple-400`} />;
+    default:
+      return <Zap {...iconProps} className={`${className} text-yellow-400`} />;
+  }
+};
+
 const ActivityFeed = () => {
-  const { activities, clearActivities } = useActivity();
+  const { activities } = useActivity();
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
@@ -196,211 +192,215 @@ const ActivityFeed = () => {
 
   return (
     <div className="space-y-6">
-      {/* Search and Filter Bar - Redesigned */}
-      <div className="glass rounded-[32px] p-6 border border-white/10">
-        <div className="flex flex-col md:flex-row gap-4">
-          {/* Search Input */}
-          <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Search activities..."
-              value={searchQuery}
-              onChange={(e) => handleSearch(e.target.value)}
-              className="
-                w-full
-                pl-11
-                pr-10
-                py-3
-                rounded-2xl
-                bg-white/[0.03]
-                border
-                border-white/10
-                text-white
-                placeholder:text-slate-500
-                focus:border-cyan-400/50
-                focus:outline-none
-                transition
-                text-sm
-              "
-            />
-            {searchQuery && (
+      {/* Search and Filter Bar */}
+{/* Search and Filter Bar */}
+<div className="glass rounded-[32px] p-6 border border-white/10 overflow-visible relative z-10">
+  <div className="flex flex-col md:flex-row gap-4">
+    {/* Search Input */}
+    <div className="relative flex-1">
+      <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+      <input
+        type="text"
+        placeholder="Search activities..."
+        value={searchQuery}
+        onChange={(e) => handleSearch(e.target.value)}
+        className="
+          w-full
+          pl-11
+          pr-10
+          py-3
+          rounded-2xl
+          bg-white/[0.03]
+          border
+          border-white/10
+          text-white
+          placeholder:text-slate-500
+          focus:border-cyan-400/50
+          focus:outline-none
+          transition
+          text-sm
+        "
+      />
+      {searchQuery && (
+        <button
+          onClick={() => handleSearch("")}
+          className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      )}
+    </div>
+
+    {/* ✅ Category Filter - Fixed Dropdown with z-[9999] */}
+    <div className="relative">
+      <button
+        onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+        className="
+          flex
+          items-center
+          gap-2
+          px-5
+          py-3
+          rounded-2xl
+          bg-white/[0.03]
+          border
+          border-white/10
+          text-white
+          hover:bg-white/[0.06]
+          transition
+          min-w-[180px]
+          justify-between
+          text-sm
+        "
+      >
+        <span className="flex items-center gap-2">
+          <Filter className="w-4 h-4 text-slate-400" />
+          <span className="truncate">{getSelectedCategoryLabel()}</span>
+        </span>
+        <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${showCategoryDropdown ? 'rotate-180' : ''}`} />
+      </button>
+
+      {showCategoryDropdown && (
+        <div
+          className="
+            absolute
+            left-0
+            top-full
+            mt-2
+            w-full
+            min-w-[220px]
+            max-h-80
+            overflow-y-auto
+            rounded-2xl
+            bg-slate-900
+            border
+            border-slate-800
+            shadow-2xl
+            py-2
+            backdrop-blur-xl
+            bg-slate-900/95
+            z-[9999]
+          "
+        >
+          {allCategories.map((cat) => {
+            const count = getCategoryCount(cat.value);
+            const isActive = filterCategory === cat.value;
+            
+            return (
               <button
-                onClick={() => handleSearch("")}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition"
+                key={cat.value}
+                onClick={() => handleCategoryFilter(cat.value)}
+                className={`
+                  w-full
+                  flex
+                  items-center
+                  justify-between
+                  px-4
+                  py-2.5
+                  text-sm
+                  transition
+                  hover:bg-white/[0.05]
+                  ${isActive ? 'bg-cyan-500/10 text-cyan-400' : 'text-slate-300'}
+                `}
               >
-                <X className="w-4 h-4" />
+                <span>{cat.label}</span>
+                <span className={`
+                  text-xs
+                  px-2
+                  py-0.5
+                  rounded-full
+                  ${isActive ? 'bg-cyan-400/20 text-cyan-400' : 'bg-white/5 text-slate-500'}
+                `}>
+                  {count}
+                </span>
               </button>
-            )}
-          </div>
-
-          {/* Category Filter */}
-          <div className="relative">
-            <button
-              onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
-              className="
-                flex
-                items-center
-                gap-2
-                px-5
-                py-3
-                rounded-2xl
-                bg-white/[0.03]
-                border
-                border-white/10
-                text-white
-                hover:bg-white/[0.06]
-                transition
-                min-w-[180px]
-                justify-between
-                text-sm
-              "
-            >
-              <span className="flex items-center gap-2">
-                <Filter className="w-4 h-4 text-slate-400" />
-                <span className="truncate">{getSelectedCategoryLabel()}</span>
-              </span>
-              <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${showCategoryDropdown ? 'rotate-180' : ''}`} />
-            </button>
-
-            {showCategoryDropdown && (
-              <div
-                className="
-                  absolute
-                  right-0
-                  top-full
-                  mt-2
-                  w-64
-                  max-h-80
-                  overflow-y-auto
-                  rounded-2xl
-                  bg-slate-900
-                  border
-                  border-slate-800
-                  shadow-2xl
-                  z-50
-                  py-2
-                "
-              >
-                {allCategories.map((cat) => {
-                  const count = getCategoryCount(cat.value);
-                  const isActive = filterCategory === cat.value;
-                  
-                  return (
-                    <button
-                      key={cat.value}
-                      onClick={() => handleCategoryFilter(cat.value)}
-                      className={`
-                        w-full
-                        flex
-                        items-center
-                        justify-between
-                        px-4
-                        py-2.5
-                        text-sm
-                        transition
-                        hover:bg-white/[0.05]
-                        ${isActive ? 'bg-cyan-500/10 text-cyan-400' : 'text-slate-300'}
-                      `}
-                    >
-                      <span>{cat.label}</span>
-                      <span className={`
-                        text-xs
-                        px-2
-                        py-0.5
-                        rounded-full
-                        ${isActive ? 'bg-cyan-400/20 text-cyan-400' : 'bg-white/5 text-slate-500'}
-                      `}>
-                        {count}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* Clear Filters */}
-          {(searchQuery || filterCategory !== "all") && (
-            <button
-              onClick={clearFilters}
-              className="
-                px-5
-                py-3
-                rounded-2xl
-                border
-                border-white/10
-                text-slate-400
-                hover:bg-white/5
-                hover:text-white
-                transition
-                text-sm
-                whitespace-nowrap
-              "
-            >
-              Clear Filters
-            </button>
-          )}
+            );
+          })}
         </div>
+      )}
+    </div>
 
-        {/* Active Filters */}
-        {(searchQuery || filterCategory !== "all") && (
-          <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-white/5">
-            {filterCategory !== "all" && (
-              <span
-                className="
-                  inline-flex
-                  items-center
-                  gap-2
-                  px-3
-                  py-1.5
-                  rounded-full
-                  text-xs
-                  font-medium
-                  bg-cyan-400/10
-                  text-cyan-400
-                  border
-                  border-cyan-400/20
-                "
-              >
-                {getCategoryInfo(filterCategory).icon} {getCategoryInfo(filterCategory).label}
-                <button
-                  onClick={() => handleCategoryFilter("all")}
-                  className="hover:text-white transition"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </span>
-            )}
-            {searchQuery && (
-              <span
-                className="
-                  inline-flex
-                  items-center
-                  gap-2
-                  px-3
-                  py-1.5
-                  rounded-full
-                  text-xs
-                  font-medium
-                  bg-white/5
-                  text-slate-300
-                  border
-                  border-white/10
-                "
-              >
-                🔍 "{searchQuery}"
-                <button
-                  onClick={() => handleSearch("")}
-                  className="hover:text-white transition"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </span>
-            )}
-          </div>
-        )}
-      </div>
+    {/* Clear Filters Button */}
+    {(searchQuery || filterCategory !== "all") && (
+      <button
+        onClick={clearFilters}
+        className="
+          px-5
+          py-3
+          rounded-2xl
+          border
+          border-white/10
+          text-slate-400
+          hover:bg-white/5
+          hover:text-white
+          transition
+          text-sm
+          whitespace-nowrap
+        "
+      >
+        Clear Filters
+      </button>
+    )}
+  </div>
+
+  {/* Active Filters */}
+  {(searchQuery || filterCategory !== "all") && (
+    <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-white/5">
+      {filterCategory !== "all" && (
+        <span
+          className="
+            inline-flex
+            items-center
+            gap-2
+            px-3
+            py-1.5
+            rounded-full
+            text-xs
+            font-medium
+            bg-cyan-400/10
+            text-cyan-400
+            border
+            border-cyan-400/20
+          "
+        >
+          {getCategoryInfo(filterCategory).icon} {getCategoryInfo(filterCategory).label}
+          <button
+            onClick={() => handleCategoryFilter("all")}
+            className="hover:text-white transition"
+          >
+            <X className="w-3 h-3" />
+          </button>
+        </span>
+      )}
+      {searchQuery && (
+        <span
+          className="
+            inline-flex
+            items-center
+            gap-2
+            px-3
+            py-1.5
+            rounded-full
+            text-xs
+            font-medium
+            bg-white/5
+            text-slate-300
+            border
+            border-white/10
+          "
+        >
+          🔍 "{searchQuery}"
+          <button
+            onClick={() => handleSearch("")}
+            className="hover:text-white transition"
+          >
+            <X className="w-3 h-3" />
+          </button>
+        </span>
+      )}
+    </div>
+  )}
+</div>
 
       {/* Activity Cards */}
       {currentActivities.length === 0 ? (
@@ -434,6 +434,7 @@ const ActivityFeed = () => {
           {currentActivities.map((activity, index) => {
             const categoryInfo = activity.category ? getCategoryInfo(activity.category) : null;
             const isExpense = activity.type === "expense_added";
+            const ActivityIcon = getActivityIcon(activity.type);
             
             return (
               <div
@@ -464,22 +465,25 @@ const ActivityFeed = () => {
                       flex
                       items-center
                       justify-center
-                      text-2xl
-                      shadow-lg
                       transition-transform
                       group-hover:scale-110
                       ${isExpense 
                         ? "bg-gradient-to-br from-cyan-500/20 to-emerald-500/20 border border-cyan-400/20" 
-                        : "bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-400/20"
+                        : activity.type === "group_created"
+                        ? "bg-gradient-to-br from-blue-500/20 to-indigo-500/20 border border-blue-400/20"
+                        : activity.type === "group_deleted"
+                        ? "bg-gradient-to-br from-red-500/20 to-pink-500/20 border border-red-400/20"
+                        : activity.type === "group_invite"
+                        ? "bg-gradient-to-br from-purple-500/20 to-violet-500/20 border border-purple-400/20"
+                        : "bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border border-yellow-400/20"
                       }
                     `}
                   >
-                    {isExpense ? "💸" : getActivityIcon(activity.type)}
+                    {ActivityIcon}
                   </div>
 
                   {/* Content */}
                   <div className="flex-1 min-w-0">
-                    {/* Message and Time */}
                     <div className="flex flex-wrap items-start justify-between gap-2">
                       <p className="font-medium text-white/90 text-base leading-relaxed">
                         {activity.message}
@@ -492,7 +496,6 @@ const ActivityFeed = () => {
                       </div>
                     </div>
 
-                    {/* Tags and Details */}
                     <div className="flex flex-wrap items-center gap-3 mt-3">
                       {/* Category Badge */}
                       {categoryInfo && (
@@ -519,7 +522,6 @@ const ActivityFeed = () => {
                         </span>
                       )}
 
-                      {/* Type Badge */}
                       <span
                         className="
                           inline-flex
@@ -540,7 +542,6 @@ const ActivityFeed = () => {
                         {activity.type?.replace(/_/g, ' ') || 'activity'}
                       </span>
 
-                      {/* Amount Badge */}
                       {activity.amount && (
                         <span
                           className="
@@ -564,7 +565,6 @@ const ActivityFeed = () => {
                       )}
                     </div>
 
-                    {/* Full timestamp on hover */}
                     <div className="mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <span className="text-xs text-slate-600">
                         {new Date(activity.createdAt).toLocaleString()}
@@ -572,7 +572,6 @@ const ActivityFeed = () => {
                     </div>
                   </div>
 
-                  {/* Action Arrow */}
                   <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0">
                     <ArrowRight className="w-5 h-5 text-slate-500" />
                   </div>
